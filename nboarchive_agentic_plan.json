@@ -1,0 +1,341 @@
+{
+  "$schema": "agentic-plan/v1",
+  "project": {
+    "name": "nboarchive",
+    "codename": "THE_ACCESSION_ROOM",
+    "version": "0.1.0",
+    "owner_instagram": "https://www.instagram.com/nboarchives/",
+    "mission": "Build a Kenya-first e-commerce web app where the @nboarchives team can list one-of-one items straight from their phones and sell them digitally to customers within Kenya, wrapped in a visual identity that does not look like a template or like AI output.",
+    "primary_audience": ["Gen Z (18-26)", "Young millennials / mid-age (27-45)"],
+    "market": { "country": "Kenya", "currency": "KES", "locale": "en-KE", "timezone": "Africa/Nairobi", "delivery_scope": "Kenya only" },
+    "assumptions_to_verify_in_phase_0": [
+      "Instagram could not be crawled automatically (robots disallow). Agent BRAND_ANALYST must ask the owner for 30-60 exported post images, captions, highlights and any brand notes before design starts.",
+      "CONFIRMED by owner: catalog is high-quality thrifted clothing: polo shirts, jackets, sweaters, hoodies and t-shirts. Still verify: are pieces strictly one-of-one or are there occasional multiples of the same item and size? This drives inventory and hold logic.",
+      "Ask owner: what does their quality check involve (inspection, washing/steaming, repairs)? Which brands do they usually source? Are returns or exchanges offered? These become trust features on the site.",
+      "Confirm payment preference: M-Pesa is assumed primary, card optional.",
+      "Confirm delivery partners and whether Nairobi pickup / meet-up is offered."
+    ]
+  },
+
+  "catalog": {
+    "authority_note": "This block is the source of truth for categories, measurements, filters, photo requirements and label content. It supersedes any generic category, template, filter or label wording elsewhere in this file (phases P2, P3, P8 and the data model).",
+    "business_model": "High-quality thrifted (second-hand) clothing, sold digitally within Kenya. Mostly one-of-one pieces.",
+    "positioning": "Quality-graded, inspected, measured selection. Thrift is treated as proud curation, clearly distinct from an unsorted pile. The site must make a buyer who cannot try things on feel safe about fit, condition and cleanliness.",
+    "categories": {
+      "polo": { "label": "Polo shirts", "measurements": ["chest (pit to pit)", "length (collar seam to hem)", "shoulder", "sleeve"], "extra_fields": ["collar condition", "placket/button condition", "knit type (pique, jersey)"] },
+      "jacket": { "label": "Jackets", "measurements": ["chest (pit to pit)", "length", "shoulder", "sleeve"], "extra_fields": ["type (bomber, denim, windbreaker, varsity, puffer, track, etc.)", "closure and zip condition", "lining and pocket condition", "insulation or waterproofing if any"] },
+      "sweater": { "label": "Sweaters", "measurements": ["chest (pit to pit)", "length", "shoulder", "sleeve"], "extra_fields": ["fibre (wool, cotton, acrylic, blend)", "pilling level", "neckline (crew, v-neck, quarter-zip, cardigan)"] },
+      "hoodie": { "label": "Hoodies", "measurements": ["chest (pit to pit)", "length", "shoulder", "sleeve"], "extra_fields": ["zip or pullover", "hood and drawstring condition", "print/embroidery condition", "fleece weight if known"] },
+      "tee": { "label": "T-shirts", "measurements": ["chest (pit to pit)", "length", "shoulder", "sleeve"], "extra_fields": ["graphic or plain", "print/crack condition", "single-stitch or double-stitch if known", "era or year if identifiable"] }
+    },
+    "required_item_fields": ["archive_no", "title", "category", "brand/label", "tagged_size", "measured_size (derived from measurements)", "fit_note (e.g. oversized, boxy, slim)", "colour", "fabric/composition (from care label)", "condition_grade", "flaws (listed honestly, with photos)", "cleaned_and_inspected (boolean + date)", "era_or_year (optional)", "price_kes"],
+    "condition_scale": [
+      { "grade": "Mint", "meaning": "Looks unworn. No visible flaws." },
+      { "grade": "Excellent", "meaning": "Very light wear. Nothing noticeable at normal distance." },
+      { "grade": "Good", "meaning": "Honest wear: small flaws are listed and photographed." },
+      { "grade": "Worn-in", "meaning": "Visible character (fade, small marks). Priced accordingly. Always fully disclosed." }
+    ],
+    "photo_shot_list": ["front flat lay or on hanger", "back", "brand tag / label close-up", "care label / composition tag", "fabric texture close-up", "every flaw close-up", "on-body or mannequin shot where available"],
+    "filters": ["category", "size (by measured chest band, not just tag)", "brand", "colour", "condition grade", "price band", "era", "drop number"],
+    "trust_features": [
+      "'Inspected and cleaned' step shown on every item with date",
+      "Flaws always shown with close-ups, never hidden",
+      "Measurements printed on the item label, plus a 'compare with a garment you own' helper (flat-measure instructions)",
+      "Clear exchange/returns policy in plain language",
+      "Claimed items archive with buyer city and date as honest social proof",
+      "Field notes from real buyers with fit photos"
+    ],
+    "visual_motifs_from_the_garments": "Use the physical language of clothing as a design source: woven neck labels, care-label pictograms and tiny uppercase text, hang-tags with string holes, price stickers, safety-pin tags, garment-bag stamps, tailor chalk marks, measuring tape ticks. Draw them as custom assets, never as stock icon sets.",
+    "label_template": "NBO-0000 / TITLE / BRAND / TAGGED SIZE + MEASURED CHEST / FABRIC / CONDITION GRADE / FLAWS / CLEANED DATE / KES PRICE",
+    "admin_quick_list_templates": ["polo", "jacket", "sweater", "hoodie", "tee"]
+  },
+
+  "north_star": {
+    "feeling": "Walking into a private archive room that someone obsessively curated: numbered, labelled, a little irreverent, very Nairobi.",
+    "one_line_brief": "Not a shop that happens to have products. An archive that happens to sell.",
+    "success_test": "A first-time visitor screenshots a page and sends it to a friend without being asked, and nobody guesses it was AI-assisted."
+  },
+
+  "design_concept": {
+    "name": "The Accession Room",
+    "core_idea": "Every item is an 'accession': it gets an archive number (e.g. NBO-0142), a condition grade, era or year, measurements, and a short provenance note written like a museum label but in the brand's voice. The UI borrows the language of archives (index cards, catalogue numbers, stamps, ledgers, specimen labels, contact sheets) and mixes it with youthful street and zine energy.",
+    "concept_driven_features_that_replace_generic_ecommerce_patterns": [
+      { "generic_pattern": "Add to cart", "archive_pattern": "Place on hold. Because every piece is one-of-one, a hold reserves it for a timed window (e.g. 15 min) with a visible, honest countdown." },
+      { "generic_pattern": "Out of stock badge", "archive_pattern": "Claimed stamp. Sold pieces stay in the archive as a permanent record with a rubber-stamp style 'CLAIMED' mark, buyer city (not name) and date. Social proof and FOMO without fake numbers." },
+      { "generic_pattern": "Product grid of identical cards", "archive_pattern": "Contact-sheet / editorial collage layout with irregular crop sizes, numbered frames and varied rhythm driven by each photo's aspect ratio." },
+      { "generic_pattern": "Collections", "archive_pattern": "Drops are 'Accessions' (Accession 07, etc.) with a cataloguing intro, opening time and a quiet countdown to release." },
+      { "generic_pattern": "Reviews and star ratings", "archive_pattern": "Field notes: short buyer notes and photos, shown like handwritten margin annotations. No star widgets." },
+      { "generic_pattern": "Size guide modal", "archive_pattern": "Measurements printed on the item label (pit-to-pit, length, waist) with a 'compare with something you own' helper." },
+      { "generic_pattern": "Newsletter popup", "archive_pattern": "'Get the drop list': a WhatsApp / SMS / email sign-up placed in-flow once, never as a popup." }
+    ],
+    "visual_direction": {
+      "layout": "Asymmetric, grid-breaking, with a strict underlying baseline grid so it feels designed rather than messy. Mix of oversized numerals, tight mono metadata, and generous photography. No centered-hero-plus-three-cards pattern anywhere.",
+      "typography": {
+        "rule": "Two or three families maximum, chosen after a visual specimen test on real item names and prices. At least one family must have clear personality.",
+        "suggested_roles": { "display": "characterful grotesk or condensed or high-contrast serif for headlines and archive numbers", "text": "highly legible humanist or grotesk for body (not Inter, not system default)", "meta": "a mono or typewriter-flavoured face for catalogue data, labels, prices" },
+        "candidates_to_test_not_to_assume": ["Familjen Grotesk", "Newsreader", "Fraunces", "Instrument Sans", "Big Shoulders Display", "DM Mono", "Martian Mono", "Space Mono", "Schibsted Grotesk", "Bricolage Grotesque"],
+        "must_be": "self-hosted, licensed for commercial use, subset for performance, with font-display: swap and metric-matched fallbacks",
+        "scale": "Fluid type scale using clamp() with a deliberate ratio. Allow one dramatically oversized display size (8-14vw) for archive numbers and drop titles."
+      },
+      "colour": {
+        "method": "Sample colours from the actual @nboarchives photography and brand marks. Build a palette of 1 paper tone, 1 ink tone, and 1-2 signal colours.",
+        "starting_hypothesis": "Warm off-paper background, near-black ink (not pure #000), one hot signal colour used sparingly like a price sticker or stamp ink. Dark-mode variant must be designed, not auto-inverted.",
+        "forbidden": ["purple/violet to blue gradients", "cyan-on-dark neon", "coloured glow box-shadows", "mesh/aurora gradient backgrounds", "gradient text"]
+      },
+      "texture_and_surface": "Subtle, real-feeling: paper grain, halftone or photocopy-grain on image edges, tape corners, stamp ink bleed. Delivered as lightweight SVG/CSS or compressed assets. Must never hurt performance or readability.",
+      "imagery": "Photography is the hero. Support multiple photos per item (front, back, label, flaw close-up, on-body). Allow cut-outs and overlapping layers. No stock illustrations, no AI-generated imagery, no 3D blobs or floating orbs.",
+      "motion": {
+        "principles": "Motion should feel like handling physical objects: flipping a card, sliding a drawer, stamping, peeling a sticker. Purposeful, short, and interruptible.",
+        "allowed": ["stamp-down on claim", "drawer-style filters", "card flip for item detail meta", "scroll-linked numeral counters", "image reveal via clip-path"],
+        "forbidden": ["scale-on-hover for every image", "fade-up-on-scroll for every block", "bouncy default easings everywhere", "infinite marquee as filler"],
+        "accessibility": "Respect prefers-reduced-motion with a fully designed static alternative."
+      },
+      "components": "Fully custom component set built from design tokens. If a headless library is used for behaviour (dialogs, popovers, focus management), every visual layer is rewritten. No unmodified shadcn/MUI/Chakra/DaisyUI look.",
+      "sound_of_voice": "Dry, curious, confident, bilingual-friendly (light Sheng/Swahili where natural, never forced). Copy is written by CONTENT_VOICE agent, not boilerplate."
+    }
+  },
+
+  "anti_ai_slop_protocol": {
+    "why": "Unconstrained generation converges on the highest-probability layout, so output looks identical across projects. The plan counters this with explicit bans, forced decisions, and an adversarial audit.",
+    "banned_tells": {
+      "typography": ["Inter as display or body", "Roboto / Open Sans / Poppins / Montserrat defaults", "font-weight 600 on everything", "same face for every heading, button and paragraph"],
+      "colour": ["purple-blue gradient hero", "cyan or neon on near-black", "glow shadows", "gradient headline text"],
+      "layout": ["centered hero with H1, subtext and two buttons", "three-up icon feature cards", "every section wrapped in a rounded rectangle", "rounded card + hairline border + diffuse shadow stack", "four-column link footer with social icon row", "identical product cards in a uniform grid", "fake browser or phone frames", "sticky blurred glass navbar as the only nav idea"],
+      "decoration": ["floating orbs / blurred blobs", "stripe or dot-grid backgrounds as filler", "emoji as feature icons", "generic AI SVG illustrations", "hover-scale on every image"],
+      "content": ["lorem ipsum", "round-number fake stats (10,000+ happy customers)", "placeholder names (John Doe, Jane Smith, Acme)", "SaaS buzzwords: streamline, empower, supercharge, world-class, seamless, elevate, curated experience", "'Welcome to our store'", "stock testimonials"],
+      "behaviour": ["removing features on mobile instead of redesigning them", "hover-only critical controls", "missing empty, error, loading and sold-out states"]
+    },
+    "forced_decisions": [
+      "DESIGN_DIRECTOR must produce a written 'decision record' for typography, palette, grid, motion and texture BEFORE any code. Each decision cites a reference from the actual brand imagery or archive culture, not a trend.",
+      "Reference gathering must come from outside e-commerce: zines, library cards, auction catalogues, record-sleeve credits, museum labels, Nairobi matatu / signage / print culture, street posters, contact sheets. Minimum 12 references with a sentence on what is borrowed.",
+      "Every page must have one 'signature moment' (a distinctive layout or interaction that appears on no other site). Document it.",
+      "Every component must be reviewed against the question: would this exist in a default UI kit? If yes, redesign it.",
+      "Use real content only: real item photos, real names, real KES prices, real measurements. Where unavailable, request from owner. Never ship fabricated reviews or stats."
+    ],
+    "slop_audit_gate": {
+      "agent": "ANTI_SLOP_AUDITOR",
+      "runs_at": ["after wireframes", "after design system", "after each page build", "pre-launch"],
+      "method": ["screenshot every page at 390px, 768px and 1440px", "grep CSS/JSX for banned fonts, gradients, shadows, class patterns", "side-by-side compare against 3 popular AI-generated/template stores for visual overlap", "blind test: show 5 target-demographic people 4 screenshots and ask 'which looks templated'"],
+      "pass_criteria": "Zero critical tells, at most 2 minor tells with written justification, and every page has a documented signature moment.",
+      "on_fail": "Block the phase and return a numbered fix list to the owning agent."
+    }
+  },
+
+  "tech_stack": {
+    "principle": "Boring, reliable plumbing underneath; distinctive design on top.",
+    "frontend": { "framework": "Next.js (App Router) + TypeScript", "styling": "CSS variables as design tokens with CSS Modules or a minimal utility layer with a fully custom theme (no default Tailwind palette or radius scale)", "motion": "CSS first, then Motion/GSAP only where needed", "images": "next/image with AVIF/WebP, blur placeholders sampled from each photo" },
+    "backend": { "runtime": "Next.js route handlers / server actions", "database": "PostgreSQL (Neon or Supabase)", "orm": "Drizzle or Prisma", "auth": "Passwordless (phone OTP or email magic link) for admins; guest checkout for customers", "storage": "Cloudinary or S3-compatible bucket with signed uploads", "queue": "lightweight job queue for hold expiry, payment reconciliation, notifications" },
+    "payments_kenya": { "primary": "M-Pesa Daraja STK Push (C2B) with callback verification and reconciliation job", "optional": ["card via a Kenya-supported gateway (e.g. Pesapal, Flutterwave, Paystack)", "cash on delivery for selected counties only if the owner opts in"], "rules": ["idempotent payment records", "never trust client-side payment status", "store minimal PII", "KES integer minor units"] },
+    "delivery": { "model": "Flat-rate by zone (Nairobi, major towns, rest of Kenya) plus optional pickup point", "integration": "Start manual with admin-entered tracking; abstract a courier interface so providers can be added later", "notify": "SMS and WhatsApp-friendly order updates" },
+    "instagram_integration": { "goal": "Reduce double work: list once, share easily.", "scope": ["generate share-ready 4:5 and 9:16 images/cards per item with archive number and price", "deep links with UTM for bio link and stories", "optional: Instagram Graph API publishing only if the account is Business/Creator and the owner completes Meta app review; otherwise ship the share-asset generator and skip auto-posting"], "note": "Do not scrape Instagram. Content enters via admin upload or owner-provided exports." },
+    "hosting_observability": { "hosting": "Vercel or similar edge host, with a region choice that minimises latency for Nairobi", "monitoring": ["error tracking", "uptime check on checkout", "Web Vitals"], "analytics": "Privacy-respecting, cookie-light" },
+    "compliance": ["Kenya Data Protection Act 2019 aware: privacy notice, consent for marketing, data minimisation", "clear returns/exchange policy page", "business details in footer-equivalent"]
+  },
+
+  "data_model": {
+    "entities": {
+      "Accession": ["id", "archive_no (NBO-0001 sequence)", "title", "category (polo|jacket|sweater|hoodie|tee)", "subtype", "brand", "tagged_size", "fit_note", "colour", "fabric_composition", "era_or_year?", "condition_grade (Mint|Excellent|Good|Worn-in)", "flaws[] (text + image ref)", "measurements (json, keys per catalog.categories)", "category_extras (json)", "cleaned_at", "provenance_note (short, voice-driven)", "price_kes", "status (draft|scheduled|live|held|claimed|withdrawn)", "drop_id", "release_at", "images[] (typed: front|back|tag|care|texture|flaw|on_body)", "tags[]", "created_by"],
+      "Drop": ["id", "number", "title", "intro", "release_at", "status"],
+      "Hold": ["id", "accession_id", "session_id", "expires_at", "status"],
+      "Order": ["id", "order_no", "customer_phone", "customer_name", "email?", "address (county, town, landmark, notes)", "items[]", "subtotal", "delivery_fee", "total", "payment_status", "fulfilment_status", "tracking_ref"],
+      "Payment": ["id", "order_id", "provider", "provider_ref", "amount", "status", "raw_callback", "reconciled_at"],
+      "FieldNote": ["id", "order_id", "accession_id", "text", "photo?", "approved"],
+      "AdminUser": ["id", "name", "contact", "role (owner|editor|packer)"],
+      "ShippingZone": ["id", "name", "counties[]", "fee", "eta_days"]
+    }
+  },
+
+  "agents": [
+    { "id": "ORCHESTRATOR", "role": "Owns the plan, sequencing, handoffs and gate decisions.", "inputs": ["this file"], "outputs": ["/docs/status.md updated after every task", "gate verdicts"], "rules": ["Never advance a phase until its gate passes", "Escalate owner-dependent questions in one batched message, not drip-fed"] },
+    { "id": "BRAND_ANALYST", "role": "Distils brand voice, palette, subject matter and audience from owner-supplied Instagram exports and conversation.", "outputs": ["/docs/brand/brief.md", "/docs/brand/palette-samples.json", "/docs/brand/voice-guide.md"] },
+    { "id": "DESIGN_DIRECTOR", "role": "Creative lead. Owns the concept, decision record, tokens and every design review.", "outputs": ["/docs/design/decision-record.md", "/docs/design/references.md", "/design/tokens.json", "/docs/design/signature-moments.md"], "authority": "Can reject any agent's UI output." },
+    { "id": "UX_ARCHITECT", "role": "Information architecture, flows, wireframes for mobile first (most traffic arrives from Instagram on phones).", "outputs": ["/docs/ux/sitemap.md", "/docs/ux/flows.md", "/design/wireframes/*"] },
+    { "id": "CONTENT_VOICE", "role": "Writes all microcopy, label templates, empty states, errors, policies in the brand voice.", "outputs": ["/content/copy.json", "/content/policies/*.md", "/content/label-templates.md"] },
+    { "id": "FRONTEND_BUILDER", "role": "Implements design system components and pages exactly to the decision record.", "outputs": ["/src/components/*", "/src/app/*"] },
+    { "id": "MOTION_ENGINEER", "role": "Builds the interaction vocabulary (stamp, flip, drawer, hold timer) with reduced-motion fallbacks.", "outputs": ["/src/motion/*", "/docs/motion-spec.md"] },
+    { "id": "BACKEND_ENGINEER", "role": "Schema, APIs, inventory logic, hold expiry, order lifecycle.", "outputs": ["/src/server/*", "/db/migrations/*", "/docs/api.md"] },
+    { "id": "PAYMENTS_ENGINEER", "role": "M-Pesa STK Push, callbacks, reconciliation, optional card gateway.", "outputs": ["/src/server/payments/*", "/docs/payments-runbook.md"] },
+    { "id": "ADMIN_TOOLS_ENGINEER", "role": "Phone-first admin: list an item in under 60 seconds, schedule drops, manage orders, print packing slips, generate Instagram share assets.", "outputs": ["/src/app/admin/*", "/src/server/share-assets/*"] },
+    { "id": "QA_A11Y_PERF", "role": "Testing, accessibility, performance on mid-range Android over 3G/4G.", "outputs": ["/tests/*", "/docs/qa-report.md"] },
+    { "id": "ANTI_SLOP_AUDITOR", "role": "Adversarial reviewer. Tries to prove the site looks templated or AI-made. Independent of builders.", "outputs": ["/docs/audits/slop-audit-<date>.md"] }
+  ],
+
+  "phases": [
+    {
+      "id": "P0", "name": "Discovery and brand intake", "owner": "BRAND_ANALYST",
+      "tasks": [
+        "Request from owner: 30-60 best post images, bio, highlight covers, logo files, typical price range, categories sold, delivery methods, payment preferences, brand dos and don'ts.",
+        "Extract dominant colours, photo style (lighting, backgrounds, cropping), caption tone, recurring phrases.",
+        "Write audience personas for the 18-26 and 27-45 segments, including how they pay and what makes them distrust online sellers in Kenya.",
+        "Resolve every item in project.assumptions_to_verify_in_phase_0."
+      ],
+      "gate": "Owner signs off brand brief and assumptions list."
+    },
+    {
+      "id": "P1", "name": "Creative direction", "owner": "DESIGN_DIRECTOR",
+      "depends_on": ["P0"],
+      "tasks": [
+        "Collect 12+ non-e-commerce references and annotate what is borrowed.",
+        "Produce 3 distinct creative routes (e.g. Index Card, Contact Sheet, Ledger/Receipt). Each gets a homepage frame and an item page frame at 390px and 1440px.",
+        "Owner picks one route; DESIGN_DIRECTOR may fuse elements but must record why.",
+        "Run type specimen test with real item names and KES prices; lock type system.",
+        "Lock palette from sampled photography; test contrast (WCAG AA minimum) and print-style 'signal' colour usage rules.",
+        "Write decision record and token file."
+      ],
+      "gate": "ANTI_SLOP_AUDITOR passes the frames. Owner approves route."
+    },
+    {
+      "id": "P2", "name": "Experience architecture", "owner": "UX_ARCHITECT",
+      "depends_on": ["P1"],
+      "tasks": [
+        "Sitemap: Home (latest accession), Archive (browse), Item, Drops, Hold/Checkout, Order tracker, About, Policies, Field Notes. Admin separately.",
+        "Browse model: filters as a drawer using catalog.filters (category, measured chest band, brand, colour, condition, price, era); sort by newest, price, archive number. Include 'jump to archive no.' search. Size filtering must use measured chest bands because thrifted tagged sizes are unreliable.",
+        "Design the fit-confidence experience on the item page: measurements next to a 'compare to your own garment' helper, flaw close-ups, inspected-and-cleaned badge. This replaces any generic size-guide modal.",
+        "Design the hold-and-checkout flow for one-of-one items: hold, timer, phone number, delivery zone, pay by M-Pesa, confirmation. Must work with one thumb on a 360px-wide Android screen.",
+        "Design every state: empty archive, no results, sold/claimed, hold expired, payment pending, payment failed, payment timeout, offline.",
+        "Design the admin quick-list flow: camera upload, auto-number, template for measurements, save draft, schedule drop."
+      ],
+      "gate": "Wireframes pass slop audit and owner review."
+    },
+    {
+      "id": "P3", "name": "Voice and content system", "owner": "CONTENT_VOICE",
+      "depends_on": ["P0", "P1"],
+      "tasks": [
+        "Write the label template: archive no., title, era, condition grade, measurements, provenance one-liner, price.",
+        "Write all microcopy for states listed in P2, avoiding banned phrases in anti_ai_slop_protocol.banned_tells.content.",
+        "Draft shipping, returns/exchange, authenticity, privacy and terms pages in plain language, English with optional Swahili lines.",
+        "Create 5 real sample accessions from owner's actual items for development."
+      ],
+      "gate": "Owner approves voice. Zero banned phrases (automated check)."
+    },
+    {
+      "id": "P4", "name": "Foundation build", "owner": "BACKEND_ENGINEER",
+      "depends_on": ["P2"],
+      "parallel_with": ["P5"],
+      "tasks": [
+        "Scaffold repo, CI, linting, type-check, env management, preview deploys.",
+        "Implement schema from data_model with migrations and seed script.",
+        "Inventory engine: atomic hold creation (row-level lock), hold expiry job, claim on payment success, release on failure/expiry. Prevent double-selling under concurrency; write tests that simulate 50 simultaneous holds on one item.",
+        "Order lifecycle and state machine; admin audit log.",
+        "Image pipeline with signed uploads, EXIF stripping, multiple derivatives, blur hash."
+      ],
+      "gate": "Concurrency tests green. API doc published."
+    },
+    {
+      "id": "P5", "name": "Design system build", "owner": "FRONTEND_BUILDER",
+      "depends_on": ["P1"],
+      "parallel_with": ["P4"],
+      "tasks": [
+        "Implement tokens (colour, type, space, radius, border, grain, motion durations/easings).",
+        "Build bespoke components: ArchiveNumber, LabelCard, ContactSheetGrid, HoldTimer, ClaimedStamp, MeasurementTable, FilterDrawer, PhoneInput (+254 formatting), ZonePicker, FieldNote, DropHeader.",
+        "Create a living style guide page documenting each component with usage and do/don't.",
+        "Run slop audit on the style guide."
+      ],
+      "gate": "Style guide approved by DESIGN_DIRECTOR and ANTI_SLOP_AUDITOR."
+    },
+    {
+      "id": "P6", "name": "Storefront pages", "owner": "FRONTEND_BUILDER",
+      "depends_on": ["P4", "P5", "P3"],
+      "collaborators": ["MOTION_ENGINEER"],
+      "tasks": [
+        "Home: opens on the newest accession, not a marketing hero. Includes drop countdown when relevant.",
+        "Archive browse with irregular contact-sheet layout, infinite or paged loading that preserves scroll position, and URL-driven filters.",
+        "Item page: gallery with flaw close-ups, label block, measurements, provenance, hold action, related by era not by 'you may also like'.",
+        "Claimed items remain viewable with stamp and are excluded from default browse but available via 'show claimed'.",
+        "Drops pages, About, Policies, Order tracker by order number + phone.",
+        "Each page documents its signature moment in /docs/design/signature-moments.md and implements it.",
+        "Build navigation as something specific to the concept (e.g. archive-number jump, drawer index) rather than a default top bar."
+      ],
+      "gate": "Per-page slop audit passes at 390 / 768 / 1440."
+    },
+    {
+      "id": "P7", "name": "Checkout and payments", "owner": "PAYMENTS_ENGINEER",
+      "depends_on": ["P4", "P6"],
+      "tasks": [
+        "Implement M-Pesa STK Push in sandbox then production: initiate, callback endpoint with signature/IP validation, idempotency, timeout handling, manual re-query by CheckoutRequestID.",
+        "Reconciliation job that matches pending payments to provider records every few minutes.",
+        "UI states: waiting for PIN prompt, wrong PIN, cancelled, insufficient funds, timeout, success. Copy from CONTENT_VOICE.",
+        "Optional: card gateway behind feature flag.",
+        "Order confirmation via SMS/email and shareable receipt page styled as an archive receipt.",
+        "Write payments runbook (failed callbacks, refunds, disputes)."
+      ],
+      "gate": "End-to-end sandbox test and at least 3 real small-value production tests by the owner."
+    },
+    {
+      "id": "P8", "name": "Admin and Instagram workflow", "owner": "ADMIN_TOOLS_ENGINEER",
+      "depends_on": ["P4", "P5"],
+      "parallel_with": ["P6", "P7"],
+      "tasks": [
+        "Phone-first admin with offline-tolerant draft saving.",
+        "Quick-list: capture 3-8 photos, pick template (tee, jacket, denim, sneakers, accessory, other), fill measurements, price, condition; auto-assign next archive number; publish now or schedule into a Drop.",
+        "Orders board: paid, packing, dispatched, delivered; tracking entry; printable packing slip with label design.",
+        "Share-asset generator: produces 4:5 post and 9:16 story images in brand style with archive no. and price, plus caption draft and deep link.",
+        "Role-based access (owner, editor, packer). Audit trail.",
+        "Optional feature flag: Instagram Graph API auto-publish when account eligibility and Meta approval are confirmed."
+      ],
+      "gate": "Owner lists a real item from their phone in under 60 seconds."
+    },
+    {
+      "id": "P9", "name": "Motion and polish", "owner": "MOTION_ENGINEER",
+      "depends_on": ["P6"],
+      "tasks": [
+        "Implement stamp, flip, drawer, peel and hold-timer interactions with documented durations and easing curves (custom, not default ease-in-out).",
+        "Provide reduced-motion alternatives for every interaction.",
+        "Verify 60fps on a mid-range Android device; strip or simplify anything that drops frames."
+      ],
+      "gate": "Motion spec approved by DESIGN_DIRECTOR."
+    },
+    {
+      "id": "P10", "name": "Quality, accessibility, performance", "owner": "QA_A11Y_PERF",
+      "depends_on": ["P7", "P8", "P9"],
+      "tasks": [
+        "Performance budget: LCP under 2.5s on throttled 4G mid-range Android, JS under 170KB gzipped on first load for storefront routes, CLS under 0.1.",
+        "Accessibility: WCAG 2.2 AA, keyboard flow through hold and checkout, screen reader labels on custom components, colour-contrast on texture backgrounds, focus states that fit the design.",
+        "Cross-device: Android Chrome, Samsung Internet, iOS Safari, Opera Mini graceful fallback, desktop Chrome/Firefox/Safari.",
+        "Security: rate limiting on holds and OTP, CSRF, input validation, admin auth review, secrets scan.",
+        "Load test: simulated drop release with 500 concurrent visitors and 50 competing for one item.",
+        "Content QA: no banned phrases, no placeholder content, all states exist."
+      ],
+      "gate": "qa-report.md has zero blocker and zero critical issues."
+    },
+    {
+      "id": "P11", "name": "Pre-launch audit and soft launch", "owner": "ANTI_SLOP_AUDITOR",
+      "depends_on": ["P10"],
+      "tasks": [
+        "Full-site slop audit using the protocol; blind test with 5 people from each target demographic.",
+        "Soft launch to a closed list from Instagram (close friends / DM list) with 10-20 items.",
+        "Collect feedback on checkout friction, delivery questions, design reactions; fix top 5 issues.",
+        "Prepare launch drop: teaser stories using share-asset generator, countdown page live 48 hours before."
+      ],
+      "gate": "Owner approval and go-live checklist signed."
+    }
+  ],
+
+  "definition_of_done": [
+    "Owner can list items from a phone and share them to Instagram in minutes.",
+    "A customer in Kenya can hold an item, pay via M-Pesa, and track the order without creating an account.",
+    "No item can ever be sold twice.",
+    "The site has a distinctive identity with documented signature moments and passes the anti-slop audit.",
+    "Performance and accessibility budgets are met on mid-range Android.",
+    "All copy is written in the brand voice with no placeholder or fabricated content."
+  ],
+
+  "working_rules_for_all_agents": [
+    "Read /docs/design/decision-record.md before touching any UI.",
+    "When a design decision is not covered, stop and ask DESIGN_DIRECTOR; never fall back to a framework default.",
+    "Prefer a custom solution over a library default for anything the customer sees.",
+    "Mobile first: design and test at 360-390px before desktop.",
+    "Small PRs, each with screenshots at 390px and 1440px and a short note on which signature or concept element it supports.",
+    "Never invent data. Use owner-supplied content or clearly mark as TODO_OWNER.",
+    "Log blockers in /docs/status.md; ORCHESTRATOR batches owner questions."
+  ],
+
+  "risks": [
+    { "risk": "Instagram assets unavailable, so design drifts generic", "mitigation": "P0 hard-blocks on receiving real brand imagery." },
+    { "risk": "Concept becomes gimmicky and hurts conversion", "mitigation": "Keep checkout plain and fast; apply the creative layer to browse and item pages; A/B soft-launch feedback." },
+    { "risk": "Texture and motion hurt low-end phone performance", "mitigation": "Performance budget as a gate; progressive enhancement." },
+    { "risk": "M-Pesa callback failures cause unpaid-but-charged orders", "mitigation": "Reconciliation job, manual re-query tool, runbook." },
+    { "risk": "Instagram API restrictions block auto-posting", "mitigation": "Ship share-asset generator first; treat auto-publish as optional." },
+    { "risk": "Double selling during hot drops", "mitigation": "Atomic holds with row locks plus concurrency tests." }
+  ]
+}
