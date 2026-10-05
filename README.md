@@ -122,8 +122,21 @@ python manage.py purge_placeholders
 cp .env.example .env              # fill values
 docker compose up -d db redis
 cd api && python -m venv .venv && .venv/Scripts/activate && pip install -r requirements-dev.txt
-python manage.py migrate && python manage.py seed_archive && python manage.py runserver
+python manage.py migrate && python manage.py seed_archive && python manage.py runserver 8010
 cd web && npm install && npm run dev
 ```
 
-Swagger: http://localhost:8000/api/docs/ -- Web: http://localhost:3000
+Swagger: http://localhost:8010/api/docs/ -- Web: http://localhost:3010
+
+### Ports
+
+Other local projects already occupy 3000-3002, 4000, 5432-5434, 5555, 6379, 6380, 8000, 8025, 8081
+and 9000-9001, so nboarchive uses its own block. Host ports are set in `.env`; the compose file falls
+back to the same values.
+
+| Service | Host port |
+|---|---|
+| Postgres | 5436 |
+| Redis | 6381 |
+| API (Django) | 8010 |
+| Web (Next.js) | 3010 |
