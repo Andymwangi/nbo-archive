@@ -39,9 +39,8 @@ class RefreshRequestSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
 
-class AccessRefreshSerializer(serializers.Serializer):
+class AccessSerializer(serializers.Serializer):
     access = serializers.CharField()
-    refresh = serializers.CharField()
 
 
 class DetailSerializer(serializers.Serializer):
@@ -51,7 +50,7 @@ class DetailSerializer(serializers.Serializer):
 class AdminUserCreateSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=254)
     name = serializers.CharField(max_length=120)
-    phone = serializers.CharField(max_length=16, required=False, allow_blank=True)
+    phone = serializers.CharField(max_length=24, required=False, allow_blank=True)
     role = serializers.ChoiceField(choices=AdminRole.choices)
 
     def validate_email(self, value: str) -> str:
@@ -66,7 +65,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
 
 class AdminUserUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=120, required=False)
-    phone = serializers.CharField(max_length=16, required=False, allow_blank=True)
+    phone = serializers.CharField(max_length=24, required=False, allow_blank=True)
     role = serializers.ChoiceField(choices=AdminRole.choices, required=False)
     is_active = serializers.BooleanField(required=False)
 

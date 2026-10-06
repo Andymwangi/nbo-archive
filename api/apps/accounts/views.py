@@ -3,14 +3,13 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.accounts import services
 from apps.accounts.models import AdminRole, AdminUser
 from apps.accounts.serializers import (
-    AccessRefreshSerializer,
+    AccessSerializer,
     AdminUserCreateSerializer,
     AdminUserSerializer,
     AdminUserUpdateSerializer,
@@ -20,6 +19,7 @@ from apps.accounts.serializers import (
     RefreshRequestSerializer,
     TokenPairSerializer,
 )
+from apps.common.client_ip import ClientAnonRateThrottle, ClientScopedRateThrottle, client_ip
 from apps.common.permissions import HasAdminRole
 
 AUTH_TAG = "Auth"
@@ -31,7 +31,7 @@ OWNER_REQUIRED = OpenApiResponse(description="Owner role required")
 
 def _client_meta(request) -> dict:
     return {
-        "ip": request.META.get("REMOTE_ADDR"),
+        "ip": client_ip(request),
         "user_agent": request.META.get("HTTP_USER_AGENT", ""),
     }
 
@@ -39,7 +39,7 @@ def _client_meta(request) -> dict:
 class MagicLinkRequestView(APIView):
     authentication_classes: list = []
     permission_classes: list = []
-    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+    throttle_classes = [ClientAnonRateThrottle, ClientScopedRateThrottle]
     throttle_scope = "magic_link"
 
     @extend_schema(
@@ -70,7 +70,7 @@ class MagicLinkRequestView(APIView):
 class MagicLinkVerifyView(APIView):
     authentication_classes: list = []
     permission_classes: list = []
-    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+    throttle_classes = [ClientAnonRateThrottle, ClientScopedRateThrottle]
     throttle_scope = "magic_link_verify"
 
     @extend_schema(
@@ -95,10 +95,10 @@ class MagicLinkVerifyView(APIView):
 
 @extend_schema(
     tags=[AUTH_TAG],
-    summary="Rotate a refresh token",
+    summary="Get a new access token",
     request=RefreshRequestSerializer,
     responses={
-        200: AccessRefreshSerializer,
+        200: AccessSerializer,
         401: OpenApiResponse(description="Refresh token invalid, expired or revoked"),
     },
     auth=[],

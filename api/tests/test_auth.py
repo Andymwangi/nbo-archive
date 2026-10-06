@@ -223,19 +223,20 @@ class TestSession:
         assert response.status_code == 200
         assert response.json()["email"] == editor.email
 
-    def test_refresh_rotates_and_blacklists_old_token(
+    def test_refresh_issues_access_and_keeps_refresh_stable(
         self, api_client, owner, django_capture_on_commit_callbacks
     ):
+        """Parallel requests that refresh with the same token must all succeed; rotation
+        would log the admin out when two tabs or prefetches refresh at once."""
         body = _sign_in(api_client, owner, django_capture_on_commit_callbacks)
 
-        rotated = api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json")
-        assert rotated.status_code == 200
-        assert rotated.json()["refresh"] != body["refresh"]
+        first = api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json")
+        second = api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json")
 
-        replay = api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json")
-        assert replay.status_code == 401
-        error = replay.json()["error"]
-        assert error == {"code": "token_not_valid", "message": "Token is blacklisted"}
+        assert first.status_code == second.status_code == 200
+        assert set(first.json()) == {"access"}
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {second.json()['access']}")
+        assert api_client.get(ME_URL).status_code == 200
 
     def test_logout_revokes_refresh_token(
         self, api_client, owner, django_capture_on_commit_callbacks
@@ -253,10 +254,10 @@ class TestSession:
         )
 
         api_client.credentials()
-        assert (
-            api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json").status_code
-            == 401
-        )
+        replay = api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json")
+        assert replay.status_code == 401
+        error = replay.json()["error"]
+        assert error == {"code": "token_not_valid", "message": "Token is blacklisted"}
 
     def test_deactivated_admin_loses_access_and_refresh(
         self, api_client, editor, django_capture_on_commit_callbacks
@@ -268,10 +269,10 @@ class TestSession:
         api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {body['access']}")
         assert api_client.get(ME_URL).status_code == 401
         api_client.credentials()
-        assert (
-            api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json").status_code
-            == 401
-        )
+        replay = api_client.post(REFRESH_URL, {"refresh": body["refresh"]}, format="json")
+        assert replay.status_code == 401
+        error = replay.json()["error"]
+        assert error["code"] == "no_active_account"
 
     def test_garbage_bearer_token_is_rejected(self, api_client):
         api_client.credentials(HTTP_AUTHORIZATION="Bearer not.a.jwt")
@@ -437,3 +438,49 @@ class TestHousekeeping:
         from apps.accounts.tasks import flush_expired_jwt
 
         flush_expired_jwt()
+
+
+class TestForwardedClientIp:
+    def _post(self, client, email, ip):
+        return client.post(
+            REQUEST_URL,
+            {"email": email},
+            format="json",
+            REMOTE_ADDR="127.0.0.1",
+            HTTP_X_FORWARDED_FOR=ip,
+        )
+
+    def test_throttle_counts_each_visitor_behind_the_web_server(
+        self, api_client, owner, monkeypatch
+    ):
+        monkeypatch.setattr(
+            ScopedRateThrottle,
+            "THROTTLE_RATES",
+            {"magic_link": "2/hour", "magic_link_verify": "2/hour"},
+        )
+        first = [self._post(api_client, owner.email, "198.51.100.7").status_code for _ in range(3)]
+        other = self._post(api_client, owner.email, "198.51.100.8").status_code
+
+        assert first == [202, 202, 429]
+        assert other == 202
+
+    def test_forwarded_address_is_recorded_on_the_link(
+        self, api_client, owner, django_capture_on_commit_callbacks
+    ):
+        with django_capture_on_commit_callbacks(execute=True):
+            self._post(api_client, owner.email, "198.51.100.7")
+        assert MagicLinkToken.objects.get(user=owner).requested_ip == "198.51.100.7"
+
+    def test_loosely_formatted_phone_is_accepted(self, auth_client, owner):
+        response = auth_client(owner).post(
+            USERS_URL,
+            {
+                "email": "wambui@nboarchive.test",
+                "name": "Wambui",
+                "role": "packer",
+                "phone": "+254 (712) 345-678",
+            },
+            format="json",
+        )
+        assert response.status_code == 201
+        assert response.json()["phone"] == "+254712345678"
