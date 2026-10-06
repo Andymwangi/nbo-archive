@@ -1,0 +1,84 @@
+/*
+  Motion vocabulary. Durations and easings come from tokens in globals.css; under
+  prefers-reduced-motion every duration is 0ms, so each state change becomes an instant cut.
+*/
+
+@keyframes drawer-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawer-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes drawer-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawer-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes drawer-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.drawer-overlay[data-state="open"] {
+  animation: drawer-overlay-in var(--dur-drawer) var(--ease-settle);
+}
+
+.drawer-overlay[data-state="closed"] {
+  animation: drawer-overlay-out var(--dur-base) var(--ease-settle);
+}
+
+.drawer-panel[data-state="open"] {
+  animation: drawer-up var(--dur-drawer) var(--ease-drawer);
+}
+
+.drawer-panel[data-state="closed"] {
+  animation: drawer-down var(--dur-base) var(--ease-settle);
+}
+
+@media (min-width: 48rem) {
+  .drawer-panel[data-state="open"] {
+    animation-name: drawer-in-right;
+  }
+
+  .drawer-panel[data-state="closed"] {
+    animation-name: drawer-out-right;
+  }
+}

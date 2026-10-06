@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/*
+  The Accession Room -- design tokens.
+  Raw values live on :root so the dark variant can be designed per token rather than inverted.
+  Tailwind's default palette, radius, shadow and type scales are wiped so nothing generic
+  can leak in through a stray utility class.
+*/
+
+:root {
+  --paper: #eee8dc;
+  --paper-2: #e4dccb;
+  --paper-3: #d8cdb7;
+  --ink: #1c1a16;
+  --ink-muted: #5e584d;
+  --ink-faint: #686152;
+  --rule: #1c1a16;
+  --signal: #b33318;
+  --signal-ink: #fbf4ea;
+  --tag: #2e5b3f;
+  --grain-opacity: 0.07;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* A warm archive drawer at night, not a black screen. */
+    --paper: #17150f;
+    --paper-2: #211e17;
+    --paper-3: #2c281f;
+    --ink: #ece5d6;
+    --ink-muted: #a69e8e;
+    --ink-faint: #958d7c;
+    --rule: #ece5d6;
+    --signal: #f0603a;
+    --signal-ink: #17150f;
+    --tag: #7fb08f;
+    --grain-opacity: 0.05;
+    color-scheme: dark;
+  }
+}
+
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --ease-*: initial;
+  --animate-*: initial;
+
+  --spacing: 0.25rem;
+
+  --radius-tag: 2px;
+  --radius-hole: 9999px;
+
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 90rem;
+
+  /* Fluid type. Ratio ~1.25 at 360px rising to ~1.333 at 1440px. */
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.3;
+  --text-micro--letter-spacing: 0.08em;
+  --text-meta: 0.8125rem;
+  --text-meta--line-height: 1.4;
+  --text-meta--letter-spacing: 0.02em;
+  --text-body: clamp(1rem, 0.96rem + 0.18vw, 1.0625rem);
+  --text-body--line-height: 1.55;
+  --text-lead: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
+  --text-lead--line-height: 1.45;
+  --text-title: clamp(1.5rem, 1.28rem + 0.95vw, 2.25rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.015em;
+  --text-display: clamp(2.5rem, 1.8rem + 3.1vw, 5rem);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.03em;
+  --text-numeral: clamp(4.5rem, 11vw, 12rem);
+  --text-numeral--line-height: 0.82;
+  --text-numeral--letter-spacing: -0.05em;
+
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-stamp: cubic-bezier(0.2, 1.6, 0.4, 1);
+  --ease-settle: cubic-bezier(0.25, 0.1, 0.1, 1);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-tag: var(--tag);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-display: var(--font-bricolage), "Arial Narrow", sans-serif;
+  --font-text: var(--font-instrument), "Helvetica Neue", Arial, sans-serif;
+  --font-meta: var(--font-dm-mono), ui-monospace, "Courier New", monospace;
+}
+
+:root {
+  --dur-quick: 120ms;
+  --dur-base: 220ms;
+  --dur-drawer: 340ms;
+  --dur-stamp: 420ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-quick: 0ms;
+    --dur-base: 0ms;
+    --dur-drawer: 0ms;
+    --dur-stamp: 0ms;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-paper font-text text-body text-ink;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "kern";
+  }
+
+  /* Paper grain: one small tiled SVG noise, painted once and never animated. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+
+  ::selection {
+    background: var(--signal);
+    color: var(--signal-ink);
+  }
+
+  /* Focus reads as a tailor's chalk outline: dashed, offset, always visible on paper. */
+  :focus-visible {
+    outline: 2px dashed var(--ink);
+    outline-offset: 3px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+}
+
+@utility meta {
+  font-family: var(--font-meta);
+  font-size: var(--text-micro);
+  letter-spacing: var(--text-micro--letter-spacing);
+  line-height: var(--text-micro--line-height);
+  text-transform: uppercase;
+}
