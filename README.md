@@ -19,7 +19,7 @@ when turning that brief into a codebase.
 | Styling | Tailwind CSS with a fully custom `@theme` (no default palette or radius scale) | 4.3.3 |
 | Behaviour primitives | Radix (headless only -- every visual layer is custom) | 1.6.7 |
 | Utility icons | Solar via Iconify (close, search, arrows only; garment motifs are custom SVG) | 6.0.2 |
-| Client data | Server Components + typed `lib/api` client; TanStack Query for holds/filters | 5.104.1 |
+| Client data | Server Components + Server Actions over a typed `lib/api` client; TanStack Query is added with the holds module, where client-side polling first needs it | -- |
 | Validation (web) | Zod | 3.25.76 |
 | API | Django 5.2 LTS + Django REST Framework | 5.2.17 / 3.18.1 |
 | API docs | drf-spectacular (Swagger at `/api/docs/`) + `docs/postman_collection.json` | 0.30.0 |
@@ -90,7 +90,8 @@ All three are SIL OFL (commercial use OK), self-hosted at build time via `next/f
 | `paper-2` | `#E4DCCB` | `#211E17` | secondary surface (index card, label stock) |
 | `ink` | `#1C1A16` | `#ECE5D6` | text (never pure black / white) |
 | `ink-muted` | `#5E584D` | `#A69E8E` | metadata |
-| `signal` | `#D9411E` | `#F0603A` | price-sticker / stamp ink -- used sparingly |
+| `ink-faint` | `#686152` | `#958D7C` | catalogue numbers, inactive marks |
+| `signal` | `#B33318` | `#F0603A` | price-sticker / stamp ink -- used sparingly |
 | `tag` | `#2E5B3F` | `#7FB08F` | cleaned-and-inspected marks only |
 
 Dark mode is a designed variant (warm dark drawer), not an inversion. Banned: purple/blue gradients,
@@ -123,10 +124,19 @@ cp .env.example .env              # fill values
 docker compose up -d db redis
 cd api && python -m venv .venv && .venv/Scripts/activate && pip install -r requirements-dev.txt
 python manage.py migrate && python manage.py seed_archive && python manage.py runserver 8010
-cd web && npm install && npm run dev
+cd web && npm install && npm run dev   # web reads web/.env.local (NEXT_PUBLIC_API_URL, API_INTERNAL_URL, NEXT_PUBLIC_SITE_URL)
 ```
 
 Swagger: http://localhost:8010/api/docs/ -- Web: http://localhost:3010
+
+### Deployment requirements
+
+- The web app must sit behind one reverse proxy that appends the real client address to
+  `X-Forwarded-For` (nginx `proxy_add_x_forwarded_for`, or the hosting edge). Rate limits depend on it.
+- Set `TRUSTED_PROXIES` on the API to the network the web container connects from.
+- Serve over HTTPS: session cookies are `Secure` in production builds and are dropped over plain HTTP.
+- If a proxy rewrites `Host`, add the public origin to `serverActions.allowedOrigins` in
+  `web/next.config.ts`, or Server Actions fail Next's origin check.
 
 ### Ports
 
@@ -140,3 +150,11 @@ back to the same values.
 | Redis | 6381 |
 | API (Django) | 8010 |
 | Web (Next.js) | 3010 |
+
+---
+
+## Credits
+
+Utility icons: [Solar](https://www.figma.com/community/file/1166831539721848736) by 480 Design,
+licensed CC BY 4.0, bundled via `@iconify-icons/solar`. Fonts: Bricolage Grotesque, Instrument Sans
+and DM Mono, all SIL Open Font License.

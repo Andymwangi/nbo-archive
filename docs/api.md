@@ -19,7 +19,7 @@ A Postman collection is generated to `docs/postman_collection.json` once all mod
 |---|---|---|---|
 | POST | `/auth/magic-link/` | public | Email a single-use sign-in link (always 202) |
 | POST | `/auth/magic-link/verify/` | public | Exchange link token for `access` + `refresh` |
-| POST | `/auth/refresh/` | public | Rotate refresh token (old one is blacklisted) |
+| POST | `/auth/refresh/` | public | New access token. Refresh tokens are not rotated (concurrent refreshes from the web app would race) and are revoked on logout |
 | POST | `/auth/logout/` | admin | Revoke a refresh token |
 | GET | `/auth/me/` | admin | Current admin |
 | GET/POST | `/auth/users/` | owner | List / add admins (new admins get a link) |
@@ -27,5 +27,9 @@ A Postman collection is generated to `docs/postman_collection.json` once all mod
 
 Error codes: `invalid_link`, `token_not_valid`, `not_authenticated`, `permission_denied`,
 `validation_error`, `throttled`, `not_found`.
+
+Rate limits on the public auth endpoints are per visitor IP. The API reads `X-Forwarded-For` only
+when the direct peer is listed in `TRUSTED_PROXIES` (loopback by default); the web app forwards the
+visitor address on link requests, link redemption and token refresh.
 
 Bootstrap the first owner with `python manage.py create_owner --email ... --name ...`.
