@@ -15,7 +15,7 @@ import { pad2 } from "@/lib/format";
 type DropCountdownProps = {
   releaseAt: string;
   fallback: string;
-  size?: "large" | "small";
+  size?: "hero" | "large" | "small";
 };
 
 export function DropCountdown({ releaseAt, fallback, size = "large" }: DropCountdownProps) {
@@ -40,7 +40,7 @@ export function DropCountdown({ releaseAt, fallback, size = "large" }: DropCount
     { value: left.minutes, label: copy.drops.countdownUnits.minutes },
     { value: left.seconds, label: copy.drops.countdownUnits.seconds },
   ];
-  const figure = size === "large" ? "text-title" : "text-lead";
+  const figure = { hero: "text-display", large: "text-title", small: "text-lead" }[size];
 
   return (
     <div role="timer" aria-label={`${copy.drops.opensIn} ${fallback}`} className="flex gap-2">

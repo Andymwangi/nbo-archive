@@ -49,6 +49,7 @@ const clearFilters = {
   priceMin: undefined,
   priceMax: undefined,
   includeClaimed: false,
+  availability: [],
   page: 1,
 } satisfies Partial<ArchiveFilters>;
 
@@ -101,6 +102,16 @@ function chips(filters: ArchiveFilters): Chip[] {
       label: `${copy.archive.priceMax} ${formatKes(filters.priceMax)}`,
       href: archiveHref({ ...base, priceMax: undefined }),
     });
+  for (const value of filters.availability) {
+    list.push({
+      key: `availability-${value}`,
+      label: copy.archive.availabilityOptions[value],
+      href: archiveHref({
+        ...base,
+        availability: filters.availability.filter((item) => item !== value),
+      }),
+    });
+  }
   if (filters.includeClaimed)
     list.push({
       key: "claimed",

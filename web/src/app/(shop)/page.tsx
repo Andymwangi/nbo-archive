@@ -1,35 +1,36 @@
-import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 
-import { ArchiveNumber } from "@/components/archive/ArchiveNumber";
-import { ContactSheetGrid } from "@/components/archive/ContactSheetGrid";
-import { DropCountdown } from "@/components/archive/DropCountdown";
-import { Button } from "@/components/primitives/Button";
-import { Tag } from "@/components/primitives/Tag";
+import { ArrivalRail } from "@/components/archive/ArrivalRail";
+import { type CategoryPlate, CategoryPlates } from "@/components/archive/CategoryPlates";
+import { DropHero } from "@/components/archive/DropHero";
+import { Icon } from "@/components/primitives/Icon";
 import { copy } from "@/content/copy";
-import { listPieces, parseArchiveFilters } from "@/lib/api/catalog";
-import { nextDrop } from "@/lib/api/drops";
-import { formatDate, formatDateTime, formatKes } from "@/lib/format";
+import { categories, getFacets, listPieces, parseArchiveFilters } from "@/lib/api/catalog";
+import { getPulse } from "@/lib/api/drops";
 
 /*
-  Signature moment: the front page is the accession register opened at its last entry. The
-  newest piece's number is set at wall-label scale beside its photograph, as if it had just
-  been stencilled on. No hero banner, no slogan.
+  Signature moment: the front page is the rail itself. The newest piece's number is set huge and
+  cropped by the edge of the page, as if stencilled on a crate half out of frame, with the newest
+  pieces on a rail beneath it. When an accession is scheduled, its countdown sheet takes the top
+  of the page and the rail follows. No banner, no slogan.
 */
 
-const RECENT = 8;
+const RAIL_LENGTH = 12;
 
 export default async function LatestPage() {
   await connection();
-  const now = new Date();
-  const [recent, upcoming] = await Promise.all([
-    listPieces(parseArchiveFilters({}), RECENT + 1),
-    nextDrop(now),
+  const [recent, pulse, facets] = await Promise.all([
+    listPieces(parseArchiveFilters({}), RAIL_LENGTH),
+    getPulse(),
+    getFacets(),
   ]);
-  const [latest, ...earlier] = recent.results;
+  const latest = recent.results[0];
+  const drop = pulse.next_drop?.release_at
+    ? { ...pulse.next_drop, release_at: pulse.next_drop.release_at }
+    : null;
 
-  if (!latest) {
+  if (!latest && !drop) {
     return (
       <section className="flex min-h-[50dvh] flex-col justify-center gap-4">
         <p className="meta text-ink-muted">{copy.home.eyebrow}</p>
@@ -39,100 +40,71 @@ export default async function LatestPage() {
     );
   }
 
-  const cover = latest.cover;
+  // Each plate shows its category's newest piece. The rail already holds the newest pieces, so
+  // only categories missing from it cost an extra (cached) request.
+  const counts = new Map(facets.category.map((row) => [row.value, row.count]));
+  const stocked = categories.filter((category) => (counts.get(category) ?? 0) > 0);
+  const fromRail = new Map(
+    stocked.map((category) => [
+      category,
+      recent.results.find((piece) => piece.category === category && piece.cover)?.cover ?? null,
+    ]),
+  );
+  const missing = stocked.filter((category) => !fromRail.get(category));
+  const fetched = await Promise.all(
+    missing.map((category) => listPieces({ ...parseArchiveFilters({}), category: [category] }, 1)),
+  );
+  missing.forEach((category, index) => {
+    fromRail.set(category, fetched[index]?.results[0]?.cover ?? null);
+  });
+  const plates: CategoryPlate[] = stocked.map((category) => ({
+    category,
+    count: counts.get(category) ?? 0,
+    cover: fromRail.get(category) ?? null,
+  }));
+
+  const RailHeading = drop ? "h2" : "h1";
+
   return (
     <div className="flex flex-col gap-16 md:gap-24">
-      <article className="grid gap-8 lg:grid-cols-[minmax(0,min(50%,calc(70dvh*0.8)))_minmax(0,1fr)] lg:items-end lg:gap-12">
-        <div className="flex flex-col gap-4 lg:order-2">
-          <p className="meta text-ink-muted">{copy.home.eyebrow}</p>
-          <ArchiveNumber archiveNo={latest.archive_no} size="display" as="p" className="-ml-0.5" />
-          <h1 className="max-w-[18ch] font-display text-title">{latest.title}</h1>
-          <p className="flex flex-wrap items-center gap-x-4 gap-y-2 meta text-ink-muted">
-            <span>{copy.labels.category[latest.category]}</span>
-            {latest.brand ? <span>{latest.brand}</span> : null}
-            {latest.era ? <span>{latest.era}</span> : null}
-            {latest.published_at ? (
-              <span>{copy.home.filed(formatDate(latest.published_at))}</span>
-            ) : null}
-          </p>
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            {latest.status === "live" && latest.price_kes !== null ? (
-              <span className="inline-block -rotate-2 bg-signal px-3 py-1.5 font-meta text-lead text-signal-ink tabular-nums">
-                {formatKes(latest.price_kes)}
+      {drop ? <DropHero drop={drop} /> : null}
+
+      {latest ? (
+        <section aria-labelledby="rail-title" className="flex flex-col gap-6">
+          {!drop && latest ? (
+            <Link
+              href={`/item/${latest.archive_no}`}
+              className="-mb-4 block overflow-hidden no-underline"
+              aria-label={`${copy.home.eyebrow}: ${latest.archive_no} ${latest.title}`}
+            >
+              <span className="flex items-baseline gap-3 meta text-ink-muted">
+                {copy.home.eyebrow} / {latest.archive_no}
               </span>
-            ) : null}
-            {latest.status === "held" ? <Tag tone="signal">{copy.piece.held}</Tag> : null}
-            {latest.is_placeholder ? <Tag tone="faint">{copy.piece.sample}</Tag> : null}
-          </div>
-          <div className="pt-2">
-            <Button asChild icon="arrow-right">
-              <Link href={`/item/${latest.archive_no}`} className="no-underline">
-                {copy.home.open}
-              </Link>
-            </Button>
-          </div>
-        </div>
-        <Link
-          href={`/item/${latest.archive_no}`}
-          className="relative block aspect-[4/5] max-h-[70dvh] overflow-hidden border-[1.5px] border-ink bg-paper-3 max-lg:mx-auto max-lg:w-full max-lg:max-w-[calc(70dvh*0.8)] lg:order-1"
-        >
-          {cover ? (
-            <Image
-              src={cover.url}
-              alt={cover.alt_text || latest.title}
-              fill
-              priority
-              sizes="(min-width: 64rem) 50vw, 100vw"
-              placeholder={cover.placeholder ? "blur" : "empty"}
-              blurDataURL={cover.placeholder || undefined}
-              className="object-cover"
-            />
-          ) : (
-            <span className="absolute inset-0 grid place-items-center meta text-ink-faint">
-              {copy.piece.noPhoto}
-            </span>
-          )}
-        </Link>
-      </article>
-
-      {upcoming?.release_at ? (
-        <section
-          aria-labelledby="next-drop"
-          className="grid gap-6 border-y-[1.5px] border-ink py-6 md:grid-cols-[1fr_auto] md:items-center"
-        >
-          <div className="flex flex-col gap-2">
-            <p className="meta text-ink-muted">
-              {copy.drops.next} / {copy.drops.number(upcoming.number)}
-            </p>
-            <h2 id="next-drop" className="font-display text-title">
-              <Link href={`/drops/${upcoming.number}`}>{upcoming.title}</Link>
-            </h2>
-            <p className="meta text-ink-muted">
-              {copy.drops.opensAt(formatDateTime(upcoming.release_at))} /{" "}
-              {copy.drops.pieces(upcoming.piece_count)}
-            </p>
-          </div>
-          <DropCountdown
-            releaseAt={upcoming.release_at}
-            fallback={copy.drops.opensAt(formatDateTime(upcoming.release_at))}
-            size="small"
-          />
-        </section>
-      ) : null}
-
-      {earlier.length ? (
-        <section aria-labelledby="recent" className="flex flex-col gap-6">
-          <div className="flex items-end justify-between gap-4 border-b-[1.5px] border-ink pb-3">
-            <h2 id="recent" className="font-display text-title">
-              {copy.home.recentTitle}
-            </h2>
-            <Link href="/archive" className="meta">
+              <span
+                aria-hidden
+                className="-ml-[0.04em] block h-[0.66em] font-display text-[clamp(6rem,24vw,22rem)] leading-[0.82] tracking-[-0.06em]"
+              >
+                {latest.archive_no.replace(/^NBO-/, "")}
+              </span>
+            </Link>
+          ) : null}
+          <div className="flex flex-wrap items-end justify-between gap-4 border-t-[1.5px] border-ink pt-4">
+            <div className="flex flex-col gap-1">
+              <RailHeading id="rail-title" className="font-display text-title">
+                {copy.home.railTitle}
+              </RailHeading>
+              <p className="meta text-ink-muted">{copy.home.railLede(pulse.on_rail)}</p>
+            </div>
+            <Link href="/archive" className="inline-flex min-h-11 items-center gap-2 meta">
               {copy.home.browse}
+              <Icon name="arrow-right" size={16} />
             </Link>
           </div>
-          <ContactSheetGrid pieces={earlier} firstFrame={2} now={now} />
+          <ArrivalRail pieces={recent.results} label={copy.home.railTitle} />
         </section>
       ) : null}
+
+      <CategoryPlates plates={plates} />
     </div>
   );
 }

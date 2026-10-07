@@ -5,10 +5,12 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 
 import { ArchiveNumber } from "@/components/archive/ArchiveNumber";
+import { ArrivalRail } from "@/components/archive/ArrivalRail";
 import { ReleaseHoldForm } from "@/components/archive/HoldControls";
 import { HoldTimer } from "@/components/archive/HoldTimer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { copy } from "@/content/copy";
+import { listPieces, parseArchiveFilters } from "@/lib/api/catalog";
 import { formatKes, minutesUntil } from "@/lib/format";
 import { currentHolds, holdsEnabled } from "@/lib/visitor";
 
@@ -22,11 +24,20 @@ export const metadata: Metadata = {
   ticket stub with the piece's number, its photo and its own clock. Module 5 turns this page into
   checkout.
 */
+const MORE_LENGTH = 8;
+
 export default async function HoldPage() {
   await connection();
   if (!holdsEnabled()) notFound();
-  const holds = await currentHolds();
+  const [holds, newest] = await Promise.all([
+    currentHolds(),
+    listPieces(parseArchiveFilters({}), MORE_LENGTH + 3),
+  ]);
   const now = new Date();
+  const mine = new Set(holds.map((hold) => hold.piece.archive_no));
+  const more = newest.results
+    .filter((piece) => !mine.has(piece.archive_no) && piece.status === "live")
+    .slice(0, MORE_LENGTH);
 
   return (
     <div className="flex flex-col gap-10">
@@ -105,6 +116,15 @@ export default async function HoldPage() {
           </p>
         </>
       )}
+
+      {more.length ? (
+        <section aria-labelledby="more" className="flex flex-col gap-5">
+          <h2 id="more" className="border-b-[1.5px] border-ink pb-3 font-display text-title">
+            {copy.hold.moreTitle}
+          </h2>
+          <ArrivalRail pieces={more} label={copy.hold.moreTitle} />
+        </section>
+      ) : null}
     </div>
   );
 }

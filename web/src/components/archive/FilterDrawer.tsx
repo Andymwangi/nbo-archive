@@ -11,6 +11,7 @@ import {
   type ArchiveFilters,
   type Facet,
   type Facets,
+  availabilities,
   categories,
   chestBands,
   conditions,
@@ -50,6 +51,21 @@ export function FilterDrawer({ filters, facets, activeCount }: FilterDrawerProps
             <input type="hidden" name="sort" value={filters.sort} />
           ) : null}
 
+          <ChoiceGroup
+            legend={copy.archive.availability}
+            name="availability"
+            options={availabilities.map((value) => ({
+              value,
+              label: copy.archive.availabilityOptions[value],
+            }))}
+            selected={
+              // An old include_claimed link means "everything, claimed too".
+              filters.includeClaimed && filters.availability.length === 0
+                ? [...availabilities]
+                : filters.availability
+            }
+            counts={counts(facets.availability)}
+          />
           <ChoiceGroup
             legend={copy.archive.category}
             name="category"
@@ -137,17 +153,6 @@ export function FilterDrawer({ filters, facets, activeCount }: FilterDrawerProps
               ))}
             </div>
           </fieldset>
-
-          <label className="flex min-h-12 items-center gap-3">
-            <input
-              type="checkbox"
-              name="include_claimed"
-              value="true"
-              defaultChecked={filters.includeClaimed}
-              className="size-5 accent-[var(--ink)]"
-            />
-            <span>{copy.archive.showClaimed}</span>
-          </label>
 
           <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-4 border-t-[1.5px] border-ink bg-paper px-5 py-4 md:-mx-8 md:px-8">
             <Link href="/archive" onClick={() => setOpen(false)} className="meta">

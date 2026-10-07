@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/errors";
 import { paginatedSchema } from "@/lib/api/types";
 import { canonicalArchiveNo } from "@/lib/archive-no";
+import { type Category, categories } from "@/lib/categories";
 
 /*
   Public catalogue reads. Responses sit in Next's data cache for a minute and are tagged so the
@@ -17,16 +18,17 @@ export const catalogTags = {
   piece: (archiveNo: string) => `piece:${archiveNo}`,
 } as const;
 
-export const categories = ["polo", "jacket", "sweater", "hoodie", "tee"] as const;
+export { categories, type Category } from "@/lib/categories";
 export const chestBands = ["xs", "s", "m", "l", "xl", "xxl"] as const;
 export const conditions = ["mint", "excellent", "good", "worn_in"] as const;
 export const sorts = ["newest", "price", "-price", "number", "-number"] as const;
+export const availabilities = ["on_rail", "on_hold", "claimed"] as const;
 export const imageKinds = ["front", "back", "tag", "care", "texture", "flaw", "on_body"] as const;
 
-export type Category = (typeof categories)[number];
 export type ChestBand = (typeof chestBands)[number];
 export type Condition = (typeof conditions)[number];
 export type Sort = (typeof sorts)[number];
+export type Availability = (typeof availabilities)[number];
 
 export const publicStatusSchema = z.enum(["live", "held", "claimed"]);
 export type PublicStatus = z.infer<typeof publicStatusSchema>;
@@ -95,6 +97,8 @@ export type Piece = z.infer<typeof pieceSchema>;
 const facetSchema = z.array(z.object({ value: z.string(), count: z.number().int() }));
 
 export const facetsSchema = z.object({
+  // Defaulted: cached facets written before availability existed must still parse.
+  availability: facetSchema.default([]),
   category: facetSchema,
   chest_band: facetSchema,
   condition: facetSchema,
@@ -123,6 +127,7 @@ export type ArchiveFilters = {
   priceMin?: number;
   priceMax?: number;
   includeClaimed: boolean;
+  availability: Availability[];
   sort: Sort;
   page: number;
 };
@@ -169,6 +174,7 @@ export function parseArchiveFilters(params: SearchParams): ArchiveFilters {
     priceMin: wholeNumber(first("price_min")),
     priceMax: wholeNumber(first("price_max")),
     includeClaimed: first("include_claimed") === "true",
+    availability: oneOf(availabilities, all(params, "availability")),
     sort: sorts.includes(sort as Sort) ? (sort as Sort) : "newest",
     page: wholeNumber(first("page"), 1) ?? 1,
   };
@@ -189,6 +195,7 @@ export function archiveQuery(
     price_min: filters.priceMin,
     price_max: filters.priceMax,
     include_claimed: filters.includeClaimed ? "true" : undefined,
+    availability: filters.availability,
     sort: filters.sort === "newest" ? undefined : filters.sort,
     page: filters.page > 1 ? filters.page : undefined,
   };
@@ -217,7 +224,8 @@ export function countActiveFilters(filters: ArchiveFilters): number {
     (filters.drop !== undefined ? 1 : 0) +
     (filters.priceMin !== undefined ? 1 : 0) +
     (filters.priceMax !== undefined ? 1 : 0) +
-    (filters.includeClaimed ? 1 : 0)
+    (filters.includeClaimed ? 1 : 0) +
+    filters.availability.length
   );
 }
 

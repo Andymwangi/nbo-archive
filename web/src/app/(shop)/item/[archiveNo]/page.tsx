@@ -98,6 +98,7 @@ export default async function ItemPage({ params }: PageProps<"/item/[archiveNo]"
           <div className="flex flex-col gap-10 lg:sticky lg:top-8 lg:self-start">
             <LabelCard piece={piece} />
             <StatusSlot piece={piece} mine={mine} holdsOpen={holdsEnabled()} now={new Date()} />
+            {piece.status !== "claimed" ? <DeliveryNote holdsOpen={holdsEnabled()} /> : null}
           </div>
         </div>
 
@@ -218,5 +219,24 @@ function StatusSlot({
         <p className="text-body text-ink-muted">{copy.item.holdsSoon}</p>
       )}
     </section>
+  );
+}
+
+/** Lufimen-style reassurance at the moment of deciding: how to pay and where it can go. */
+function DeliveryNote({ holdsOpen }: { holdsOpen: boolean }) {
+  return (
+    <div className="flex flex-col gap-2 border-t border-ink/25 pt-4">
+      <p className="meta">{copy.hold.payDelivery}</p>
+      <p className="flex flex-wrap gap-x-5 gap-y-1">
+        <Link href="/policies/shipping" className="inline-flex min-h-11 items-center meta">
+          {copy.hold.howDelivery}
+        </Link>
+        {holdsOpen ? (
+          <Link href="/help/holds" className="inline-flex min-h-11 items-center meta">
+            {copy.hold.howHolds}
+          </Link>
+        ) : null}
+      </p>
+    </div>
   );
 }

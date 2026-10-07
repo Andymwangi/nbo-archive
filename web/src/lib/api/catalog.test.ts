@@ -42,6 +42,7 @@ describe("parseArchiveFilters", () => {
       price_min: "1e3",
       price_max: "4500",
       include_claimed: "yes",
+      availability: ["on_hold", "lost"],
     });
     expect(filters).toEqual({
       category: ["polo"],
@@ -54,6 +55,7 @@ describe("parseArchiveFilters", () => {
       priceMin: undefined,
       priceMax: 4500,
       includeClaimed: false,
+      availability: ["on_hold"],
       sort: "newest",
       page: 1,
     });
@@ -65,6 +67,12 @@ describe("parseArchiveFilters", () => {
 });
 
 describe("archiveHref", () => {
+  it("keeps availability choices in the link and counts them as filters", () => {
+    const filters = parseArchiveFilters({ availability: ["on_rail", "claimed"] });
+    expect(archiveHref(filters)).toBe("/archive?availability=on_rail&availability=claimed");
+    expect(countActiveFilters(filters)).toBe(2);
+  });
+
   it("round-trips through the parser and leaves defaults out", () => {
     const filters = parseArchiveFilters({
       category: ["tee"],
