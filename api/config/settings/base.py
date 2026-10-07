@@ -3,6 +3,7 @@ from pathlib import Path
 
 import environ
 from celery.schedules import crontab
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 REPO_ROOT = BASE_DIR.parent
@@ -24,6 +25,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
@@ -31,6 +33,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "apps.common",
     "apps.accounts",
+    "apps.catalog",
 ]
 
 MIDDLEWARE = [
@@ -83,8 +86,17 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "/media/"
+MEDIA_URL = env("MEDIA_URL", default="/media/")
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Only local storage exists today. A Cloudinary or S3 backend needs its package and a branch here.
+MEDIA_STORAGE = env("MEDIA_STORAGE", default="local") or "local"
+if MEDIA_STORAGE != "local":
+    raise ImproperlyConfigured(f"MEDIA_STORAGE={MEDIA_STORAGE!r} is not supported; use 'local'.")
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 
@@ -137,6 +149,11 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
+    "ENUM_NAME_OVERRIDES": {
+        "AccessionStatusEnum": "apps.catalog.models.AccessionStatus",
+        "PublicAccessionStatusEnum": ["live", "held", "claimed"],
+        "DropStatusEnum": "apps.catalog.models.DropStatus",
+    },
 }
 
 CACHES = {
@@ -159,6 +176,10 @@ CELERY_BEAT_SCHEDULE = {
     "flush-expired-jwt": {
         "task": "apps.accounts.tasks.flush_expired_jwt",
         "schedule": crontab(hour=3, minute=20),
+    },
+    "release-due-pieces": {
+        "task": "apps.catalog.tasks.release_due_pieces",
+        "schedule": crontab(),
     },
 }
 
