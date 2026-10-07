@@ -45,6 +45,15 @@ piece is enforced by the database and by row locks; a visitor can hold at most 3
 switched off in production (`HOLDS_ENABLED`) until checkout exists. See `docs/api.md` (Holds) and
 the limitations in `docs/status.md`.
 
+### Storefront shell redesign (done 2026-10-07)
+
+Live strip (next drop, pieces on the rail and on hold), a "drop console" header with category
+tags, a phone tab bar, an ink footer led by the drop-list sign-up, information pages (about,
+contact, how holds work, size and condition guide, draft policies), a home page that opens on the
+newest-arrivals rail (or the next drop's countdown when one is scheduled) with category plates,
+an availability filter with counts, and a delivery note beside the hold button. Lufimen.com was
+reviewed for ideas; only its commerce mechanics were adopted.
+
 ### Module 5: Orders and delivery
 
 Guest checkout from `/hold`: phone (+254 formatting), name, delivery zone and address, order

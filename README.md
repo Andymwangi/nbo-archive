@@ -124,7 +124,7 @@ cp .env.example .env              # fill values
 docker compose up -d db redis
 cd api && python -m venv .venv && .venv/Scripts/activate && pip install -r requirements-dev.txt
 python manage.py migrate && python manage.py seed_archive && python manage.py runserver 8010
-cd web && npm install && npm run dev   # web reads web/.env.local (NEXT_PUBLIC_API_URL, API_INTERNAL_URL, NEXT_PUBLIC_SITE_URL, INTERNAL_API_TOKEN)
+cd web && npm install && npm run dev   # web reads web/.env.local (NEXT_PUBLIC_API_URL, API_INTERNAL_URL, NEXT_PUBLIC_SITE_URL, INTERNAL_API_TOKEN, HOLDS_ENABLED, CONTACT_* details)
 ```
 
 Swagger: http://localhost:8010/api/docs/ -- Web: http://localhost:3010

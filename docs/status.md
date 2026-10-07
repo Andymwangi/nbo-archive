@@ -28,8 +28,7 @@ Updated: 2026-10-07
 Created with real content in their module, not as empty placeholders (an empty `page.tsx` breaks
 `next build`):
 
-- Storefront: `/orders/track`, `/orders/[orderNo]`, `/field-notes`, `/about`,
-  `/policies/[slug]`, `/style-guide`.
+- Storefront: `/orders/track`, `/orders/[orderNo]`, `/field-notes`, `/style-guide`.
 - Admin desk: `/admin/list`, `/admin/orders`, `/admin/orders/[id]/slip`.
 
 
@@ -95,3 +94,11 @@ Created with real content in their module, not as empty placeholders (an empty `
 - The hold clock counts to the expiry the API set, corrected for the gap between the phone's and
   the server's clocks at page load. If the phone's clock changes while the page is open, the clock
   drifts with it; the server stays the authority, and the page refreshes until it agrees.
+- Shipping, returns, privacy and terms pages are drafts: they state only what is known and mark
+  every fee, window and responsibility as "to be confirmed by the owner", with a draft banner.
+- The drop list collects sign-ups (WhatsApp number and/or email, with consent records) but nothing
+  sends alerts yet; sending arrives with module 7.
+- Contact details (WhatsApp, email, Instagram, city, hours) come from the web server's environment
+  and stay hidden while unset. Only Instagram (from the brief) is set in local development.
+- The home page fetches one newest piece per stocked category for the category plates (up to five
+  cached API calls), plus the rail, the pulse and the facets.
