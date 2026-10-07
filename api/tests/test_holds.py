@@ -334,6 +334,24 @@ class TestStaffRelease:
         _place(_visitor(), "4")
         assert auth_client(packer).post(self._url(piece)).status_code == 403
 
+    def test_releasing_a_lapsed_hold_records_it_as_expired(self, auth_client, owner):
+        piece = _piece(4)
+        _place(_visitor(), "4")
+        Hold.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
+
+        assert auth_client(owner).post(self._url(piece)).status_code == 200
+        assert Hold.objects.get().status == HoldStatus.EXPIRED
+        assert _status(piece) == AccessionStatus.LIVE
+
+    def test_held_piece_without_a_hold_record_is_repaired(self, auth_client, owner):
+        piece = _piece(4, status=AccessionStatus.HELD)
+
+        response = auth_client(owner).post(self._url(piece))
+
+        assert response.status_code == 200
+        assert _status(piece) == AccessionStatus.LIVE
+        assert Hold.objects.count() == 0
+
     def test_nothing_to_release(self, auth_client, owner):
         piece = _piece(4)
         response = auth_client(owner).post(self._url(piece))

@@ -128,3 +128,53 @@ def test_release_racing_expiry_ends_the_hold_once():
     assert hold.status in (HoldStatus.RELEASED, HoldStatus.EXPIRED)
     piece.refresh_from_db()
     assert piece.status == AccessionStatus.LIVE
+
+
+def test_hold_racing_the_release_task_on_a_due_scheduled_piece():
+    """The release task flips due pieces with an unlocked UPDATE. Postgres re-checks its
+    WHERE clause after waiting on the hold's row lock, so it must never overwrite `held`."""
+    from apps.catalog.services import release_due
+
+    piece = Accession.objects.create(
+        number=77,
+        title="Due piece",
+        category="hoodie",
+        price_kes=3900,
+        status=AccessionStatus.SCHEDULED,
+        release_at=timezone.now() - timedelta(minutes=1),
+        published_at=timezone.now() - timedelta(minutes=1),
+    )
+    buyers = [secrets.token_urlsafe(32) for _ in range(10)]
+    jobs = [lambda token=token: services.place_hold(number=77, token=token) for token in buyers]
+    jobs += [release_due for _ in range(5)]
+
+    results, errors = _race(jobs)
+
+    assert len([result for result in results if isinstance(result[0], Hold)]) == 1
+    assert _codes(errors) == ["piece_held"] * 9
+    piece.refresh_from_db()
+    assert piece.status == AccessionStatus.HELD
+    assert piece.release_at is None
+    assert Hold.objects.filter(accession=piece, status=HoldStatus.ACTIVE).count() == 1
+
+
+def test_hold_racing_a_withdraw_never_leaves_a_withdrawn_piece_held():
+    from apps.catalog.services import withdraw_accession
+
+    for _ in range(5):
+        Hold.objects.all().delete()
+        Accession.objects.all().delete()
+        piece = _piece(88)
+        jobs = [lambda: services.place_hold(number=88, token=secrets.token_urlsafe(32))]
+        jobs += [lambda: withdraw_accession(Accession.objects.get(number=88))]
+
+        _, errors = _race(jobs)
+
+        piece.refresh_from_db()
+        active = Hold.objects.filter(accession=piece, status=HoldStatus.ACTIVE).count()
+        assert len(errors) == 1
+        if piece.status == AccessionStatus.HELD:
+            assert active == 1
+        else:
+            assert piece.status == AccessionStatus.WITHDRAWN
+            assert active == 0

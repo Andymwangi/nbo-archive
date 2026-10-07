@@ -80,7 +80,8 @@ def _return_to_sale(accession: Accession) -> None:
 
 def _end_active_hold(accession: Accession, status: str, now, actor=None) -> Hold | None:
     """End the piece's active hold and put the piece back on sale. The piece must already be
-    locked by the caller. Returns the hold that ended, if there was one."""
+    locked by the caller. Returns the hold that ended, if there was one. A hold whose time had
+    already run out is recorded as expired, whoever ends it."""
     hold = (
         Hold.objects.select_for_update()
         .filter(accession=accession, status=HoldStatus.ACTIVE)
@@ -88,7 +89,7 @@ def _end_active_hold(accession: Accession, status: str, now, actor=None) -> Hold
     )
     if hold is None:
         return None
-    _end(hold, status, now, actor)
+    _end(hold, HoldStatus.EXPIRED if hold.expires_at <= now else status, now, actor)
     if accession.status == AccessionStatus.HELD:
         _return_to_sale(accession)
     return hold
@@ -162,13 +163,16 @@ def release_hold(*, hold_id: int, token: str, now=None) -> None:
             _return_to_sale(accession)
 
 
-def staff_release(*, accession: Accession, actor, now=None) -> Hold:
-    """Clear a stuck hold from the desk."""
+def staff_release(*, accession: Accession, actor, now=None) -> Hold | None:
+    """Clear a stuck hold from the desk. A piece marked held with no active hold behind it
+    (written before holds existed, or by hand) is repaired by putting it back on sale."""
     with transaction.atomic():
         accession = Accession.objects.select_for_update().get(pk=accession.pk)
+        if accession.status != AccessionStatus.HELD:
+            raise ConflictError(f"{accession.archive_no} is not on hold.", code="no_hold")
         hold = _end_active_hold(accession, HoldStatus.RELEASED, now or timezone.now(), actor)
         if hold is None:
-            raise ConflictError(f"{accession.archive_no} has no active hold.", code="no_hold")
+            _return_to_sale(accession)
     return hold
 
 

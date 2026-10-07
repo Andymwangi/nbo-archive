@@ -115,14 +115,17 @@ class AdminReleaseHoldView(APIView):
     @extend_schema(
         tags=["Admin catalog"],
         summary="Release a piece's active hold",
-        description="Clears a stuck hold and puts the piece back on sale.",
+        description=(
+            "Clears a stuck hold and puts the piece back on sale. A piece marked held with no "
+            "active hold behind it is repaired the same way."
+        ),
         request=None,
         responses={
             200: AdminAccessionSerializer,
             401: OpenApiResponse(description="Not signed in"),
             403: OpenApiResponse(description="Owner or editor role required"),
             404: OpenApiResponse(description="Not found"),
-            409: OpenApiResponse(description="The piece has no active hold (`no_hold`)"),
+            409: OpenApiResponse(description="The piece is not on hold (`no_hold`)"),
         },
     )
     def post(self, request, pk: int):

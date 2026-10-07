@@ -118,11 +118,13 @@ Visitors have no accounts. The web server sends the visitor's random key in `X-V
 | GET | `/holds/` | visitor | The visitor's active holds, soonest to expire first, each with its piece card |
 | POST | `/holds/` | visitor | Hold a piece (`archive_no`). 201 new, 200 when this visitor already holds it |
 | DELETE | `/holds/{id}/` | visitor | Let go early. 204, also when the hold has already ended |
-| POST | `/admin/accessions/{id}/release-hold/` | owner, editor | Clear a stuck hold; returns the admin piece |
+| POST | `/admin/accessions/{id}/release-hold/` | owner, editor | Clear a stuck hold; returns the admin piece. Also repairs a piece marked `held` with no hold behind it. 409 `no_hold` when the piece is not held |
 
-Conflict codes on `POST /holds/`: `piece_held` (someone else holds it), `not_for_sale` (claimed),
-`hold_limit` (the visitor already has 3 active holds). Pieces that are not public return 404.
-Placing a hold is rate limited per visitor address (`hold`, 30 a minute); reading holds is not.
+Conflict codes on `POST /holds/`: `piece_held` (someone else holds it), `not_for_sale` (claimed,
+or marked held with no hold behind it, which the desk's release repairs), `hold_limit` (the
+visitor already has 3 active holds). Pieces that are not public return 404. Placing a hold is
+rate limited per visitor address (`hold`, 30 a minute); reading holds only counts against the
+general anonymous rate, which the web server's own reads are exempt from.
 
 Rules:
 
