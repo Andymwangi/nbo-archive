@@ -57,7 +57,6 @@ Created with real content in their module, not as empty placeholders (an empty `
 - The admin audit log is deferred to module 7; catalogue writes are not yet audited.
 - The Django admin (`/django-admin/`) shows catalogue records read-only. Every catalogue write goes
   through the API so photo metadata stripping and the publishing rules always apply.
-- `api/Dockerfile` uses Python 3.14 while the project targets 3.12.
 - Storefront data is cached for 60 seconds per API call, served stale-while-revalidate: after the
   minute, the first visit still gets the old data while it refreshes, the next gets the new. So a
   piece that changes without a desk action (a scheduled release by the beat task; holds and
@@ -83,5 +82,3 @@ Created with real content in their module, not as empty placeholders (an empty `
   uploaded with one kind; set each photo's kind afterwards.
 - The new-piece and drop drawers, confirm dialogs and photo uploads need JavaScript. The piece
   editor's section forms work without it.
-- `next dev` writes `web/AGENTS.md` and `web/CLAUDE.md` (Next 16.3 agent rules). They are not
-  committed; set `agentRules: false` in next.config to stop it.
