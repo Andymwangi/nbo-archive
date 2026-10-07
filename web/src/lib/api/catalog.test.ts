@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   archiveHref,
   countActiveFilters,
+  getPiece,
   parseArchiveFilters,
   pieceCardSchema,
 } from "@/lib/api/catalog";
@@ -122,5 +123,27 @@ describe("pieceCardSchema", () => {
 
   it("rejects statuses the public API never sends", () => {
     expect(pieceCardSchema.safeParse({ ...card, status: "draft" }).success).toBe(false);
+  });
+});
+
+describe("getPiece", () => {
+  it("tags the canonical archive number whatever spelling it is asked for", async () => {
+    vi.stubEnv("API_INTERNAL_URL", "http://api:8000");
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ error: { code: "not_found", message: "Not found." } }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    for (const spelling of ["142", "nbo-0142", "NBO-0142"]) {
+      expect(await getPiece(spelling)).toBeNull();
+    }
+    const tags = fetchMock.mock.calls.map(
+      (call) => (call as unknown as [string, { next: { tags: string[] } }])[1].next.tags,
+    );
+    expect(tags).toEqual(Array(3).fill(["catalog", "piece:NBO-0142"]));
   });
 });

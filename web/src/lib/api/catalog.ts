@@ -3,6 +3,7 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/errors";
 import { paginatedSchema } from "@/lib/api/types";
+import { canonicalArchiveNo } from "@/lib/archive-no";
 
 /*
   Public catalogue reads. Responses sit in Next's data cache for a minute and are tagged so the
@@ -234,7 +235,8 @@ export async function getPiece(archiveNo: string): Promise<Piece | null> {
     return await apiRequest(`/catalog/accessions/${encodeURIComponent(archiveNo)}/`, {
       schema: pieceSchema,
       revalidate: CATALOG_REVALIDATE_SECONDS,
-      tags: [catalogTags.all, catalogTags.piece(archiveNo.toUpperCase())],
+      // Tag the canonical spelling so one updateTag from the desk covers every way of asking.
+      tags: [catalogTags.all, catalogTags.piece(canonicalArchiveNo(archiveNo) ?? archiveNo)],
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
