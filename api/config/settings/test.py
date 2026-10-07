@@ -5,6 +5,9 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 CELERY_TASK_ALWAYS_EAGER = True
+# Tests must not depend on a developer's .env; individual tests set these when they need them.
+MEDIA_BASE_URL = ""
+INTERNAL_API_TOKEN = ""
 REST_FRAMEWORK = {
     **REST_FRAMEWORK,  # noqa: F405
     "DEFAULT_THROTTLE_RATES": {

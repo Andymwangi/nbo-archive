@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -22,7 +23,11 @@ from apps.catalog.specs import (
 
 
 def _absolute(request, url: str) -> str:
-    if request is not None and url.startswith("/"):
+    if not url.startswith("/"):
+        return url
+    if settings.MEDIA_BASE_URL:
+        return settings.MEDIA_BASE_URL + url
+    if request is not None:
         return request.build_absolute_uri(url)
     return url
 

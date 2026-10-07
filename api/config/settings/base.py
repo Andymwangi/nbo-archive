@@ -87,6 +87,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = env("MEDIA_URL", default="/media/")
+# Public origin that serves MEDIA_URL (e.g. https://api.example.com). Image URLs are built from it
+# rather than from the request host, which is the API's internal address when the web server calls
+# it. Empty falls back to the request host.
+MEDIA_BASE_URL = env("MEDIA_BASE_URL", default="").rstrip("/")
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Only local storage exists today. A Cloudinary or S3 backend needs its package and a branch here.
@@ -103,6 +107,11 @@ CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 # Direct peers allowed to vouch for the visitor's address via X-Forwarded-For (the web app's
 # server). Loopback covers local development; add the compose or hosting network in deployment.
 TRUSTED_PROXIES = env.list("TRUSTED_PROXIES", default=["127.0.0.1/32", "::1/128"])
+
+# Shared with the web server. Requests carrying it in X-Internal-Token skip the anonymous rate
+# limit, so cache refreshes of public pages (which have no visitor behind them) are not throttled
+# as one client. Scoped limits such as magic-link requests still apply. Empty disables the bypass.
+INTERNAL_API_TOKEN = env("INTERNAL_API_TOKEN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

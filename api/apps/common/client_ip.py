@@ -6,6 +6,7 @@ X-Forwarded-For; it is honoured only when the direct peer is a trusted proxy, ot
 anyone could rotate the header to dodge rate limits.
 """
 
+import hmac
 import ipaddress
 from functools import lru_cache
 
@@ -38,7 +39,19 @@ def client_ip(request) -> str | None:
     return candidate or remote
 
 
+def is_internal(request) -> bool:
+    """True when the request carries the web server's shared token."""
+    expected = settings.INTERNAL_API_TOKEN
+    supplied = request.META.get("HTTP_X_INTERNAL_TOKEN", "")
+    return bool(expected) and hmac.compare_digest(supplied.encode(), expected.encode())
+
+
 class ClientAnonRateThrottle(AnonRateThrottle):
+    def allow_request(self, request, view):
+        if is_internal(request):
+            return True
+        return super().allow_request(request, view)
+
     def get_ident(self, request):
         return client_ip(request) or super().get_ident(request)
 

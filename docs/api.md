@@ -32,6 +32,11 @@ Rate limits on the public auth endpoints are per visitor IP. The API reads `X-Fo
 when the direct peer is listed in `TRUSTED_PROXIES` (loopback by default); the web app forwards the
 visitor address on link requests, link redemption and token refresh.
 
+The web server's own calls (page renders and cache refreshes, which have no visitor behind them)
+send `X-Internal-Token: <INTERNAL_API_TOKEN>` instead. A matching token lifts the anonymous
+per-minute limit only; scoped limits such as magic-link requests still apply. An empty
+`INTERNAL_API_TOKEN` disables the bypass.
+
 Bootstrap the first owner with `python manage.py create_owner --email ... --name ...`.
 
 ## Catalog (public)
@@ -55,7 +60,8 @@ has passed (reported as `live`). Claimed pieces are left out of browse unless as
 centimetres, measured flat. Chest bands (pit to pit): `xs` under 48, `s` 48-51, `m` 52-55,
 `l` 56-59, `xl` 60-63, `xxl` 64 and over (provisional until the owner confirms).
 
-Photo URLs are absolute. Each photo carries `width`, `height` and `placeholder` (a tiny base64
+Photo URLs are absolute, built from `MEDIA_BASE_URL` when it is set and from the request host
+otherwise. Each photo carries `width`, `height` and `placeholder` (a tiny base64
 JPEG for blur-up).
 
 ## Catalog (admin)

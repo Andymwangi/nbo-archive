@@ -124,7 +124,7 @@ cp .env.example .env              # fill values
 docker compose up -d db redis
 cd api && python -m venv .venv && .venv/Scripts/activate && pip install -r requirements-dev.txt
 python manage.py migrate && python manage.py seed_archive && python manage.py runserver 8010
-cd web && npm install && npm run dev   # web reads web/.env.local (NEXT_PUBLIC_API_URL, API_INTERNAL_URL, NEXT_PUBLIC_SITE_URL)
+cd web && npm install && npm run dev   # web reads web/.env.local (NEXT_PUBLIC_API_URL, API_INTERNAL_URL, NEXT_PUBLIC_SITE_URL, INTERNAL_API_TOKEN)
 ```
 
 Swagger: http://localhost:8010/api/docs/ -- Web: http://localhost:3010
@@ -134,6 +134,12 @@ Swagger: http://localhost:8010/api/docs/ -- Web: http://localhost:3010
 - The web app must sit behind one reverse proxy that appends the real client address to
   `X-Forwarded-For` (nginx `proxy_add_x_forwarded_for`, or the hosting edge). Rate limits depend on it.
 - Set `TRUSTED_PROXIES` on the API to the network the web container connects from.
+- Set the same random `INTERNAL_API_TOKEN` on the API and the web server. Server-side page renders
+  carry it so the storefront is not rate-limited as one anonymous client.
+- Set `MEDIA_BASE_URL` on the API to the public origin that serves `/media/` (usually the API's own
+  public URL). Image URLs are built from it; without it they carry the internal hostname the web
+  server used to reach the API. If it differs from `NEXT_PUBLIC_API_URL`, the web build must see it
+  too so `next/image` allows that host.
 - Serve over HTTPS: session cookies are `Secure` in production builds and are dropped over plain HTTP.
 - If a proxy rewrites `Host`, add the public origin to `serverActions.allowedOrigins` in
   `web/next.config.ts`, or Server Actions fail Next's origin check.

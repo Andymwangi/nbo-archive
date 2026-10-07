@@ -262,6 +262,15 @@ class TestPublicBrowse:
         assert row["cover"]["url"].startswith("http://testserver/media/accessions/")
         assert row["cover"]["placeholder"].startswith("data:image/jpeg;base64,")
 
+    def test_image_urls_use_the_public_media_origin_when_set(self, editor, settings):
+        settings.MEDIA_BASE_URL = "https://media.nboarchive.test"
+        piece = _live(editor)
+        detail = self._get(_detail_url(piece.archive_no), HTTP_HOST="api:8000").json()
+        assert all(
+            image["url"].startswith("https://media.nboarchive.test/media/accessions/")
+            for image in detail["images"]
+        )
+
     def test_detail_accepts_any_archive_number_spelling(self, editor):
         piece = _live(editor)
         for spelling in (piece.archive_no, piece.archive_no.lower(), str(piece.number), "0001"):
@@ -308,10 +317,10 @@ class TestPublicBrowse:
         assert auth_client(packer).get(LIST_URL).status_code == 200
 
     @staticmethod
-    def _get(url):
+    def _get(url, **extra):
         from rest_framework.test import APIClient
 
-        return APIClient().get(url)
+        return APIClient().get(url, **extra)
 
     def _archive_nos(self, url) -> set[str]:
         response = self._get(url)

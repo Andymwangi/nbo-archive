@@ -59,3 +59,32 @@ class TestClientIp:
         from apps.common.client_ip import client_ip
 
         assert client_ip(self._request("::1", "2001:db8::5")) == "2001:db8::5"
+
+
+@pytest.mark.django_db
+class TestInternalToken:
+    """The web server's shared token lifts the anonymous rate limit and nothing else."""
+
+    @pytest.fixture(autouse=True)
+    def _tight_anon_limit(self, monkeypatch, settings):
+        from apps.common.client_ip import ClientAnonRateThrottle
+
+        settings.INTERNAL_API_TOKEN = "s3cret-token"
+        monkeypatch.setattr(ClientAnonRateThrottle, "THROTTLE_RATES", {"anon": "2/min"})
+
+    @staticmethod
+    def _statuses(client, count, **headers):
+        return [client.get("/api/v1/catalog/drops/", **headers).status_code for _ in range(count)]
+
+    def test_anonymous_callers_are_limited(self, api_client):
+        assert self._statuses(api_client, 3) == [200, 200, 429]
+
+    def test_matching_token_skips_the_anonymous_limit(self, api_client):
+        assert self._statuses(api_client, 5, HTTP_X_INTERNAL_TOKEN="s3cret-token") == [200] * 5
+
+    def test_wrong_token_is_limited(self, api_client):
+        assert self._statuses(api_client, 3, HTTP_X_INTERNAL_TOKEN="guess") == [200, 200, 429]
+
+    def test_empty_setting_disables_the_bypass(self, api_client, settings):
+        settings.INTERNAL_API_TOKEN = ""
+        assert self._statuses(api_client, 3, HTTP_X_INTERNAL_TOKEN="") == [200, 200, 429]
