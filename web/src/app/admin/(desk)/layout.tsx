@@ -16,6 +16,8 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
   const { user } = await currentAdmin();
   const rooms = [
     { href: "/admin", label: "Desk" },
+    { href: "/admin/accessions", label: copy.desk.accessionsRoom },
+    { href: "/admin/drops", label: copy.desk.dropsRoom },
     ...(user.role === "owner" ? [{ href: "/admin/staff", label: copy.desk.staffRoom }] : []),
   ];
 

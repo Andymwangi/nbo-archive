@@ -61,5 +61,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // The photo upload route is left out: proxy buffers request bodies (10 MB by default) and
+  // would truncate a large photo. That route checks and refreshes the session itself.
+  matcher: ["/admin", "/admin/((?!accessions/[0-9]+/photos$).*)"],
 };
