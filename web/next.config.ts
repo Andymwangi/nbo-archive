@@ -20,6 +20,8 @@ const mediaOrigins = [
 ].filter((origin): origin is string => Boolean(origin));
 
 const nextConfig: NextConfig = {
+  // Stop `next dev` writing AGENTS.md and CLAUDE.md into the repo.
+  agentRules: false,
   // The Docker image sets NEXT_OUTPUT=standalone; local `next start` needs the regular output.
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   images: {

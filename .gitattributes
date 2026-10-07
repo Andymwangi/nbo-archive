@@ -1,0 +1,11 @@
+# Store and check out text as LF everywhere, so Windows checkouts stop showing files as modified.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
