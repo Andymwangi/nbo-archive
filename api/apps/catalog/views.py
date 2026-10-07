@@ -54,6 +54,7 @@ VALIDATION = OpenApiResponse(description="Validation error")
 CONFLICT = OpenApiResponse(description="Not allowed in the piece's or drop's current state")
 
 RELATED_LIMIT = 4
+ON_RAIL = [AccessionStatus.LIVE, AccessionStatus.SCHEDULED]
 SALE_STATUSES = [
     AccessionStatus.SCHEDULED,
     AccessionStatus.LIVE,
@@ -164,12 +165,16 @@ class FacetsView(APIView):
     @extend_schema(
         tags=[CATALOG_TAG],
         summary="Filter options for the archive drawer",
-        description="Values present among browsable (not claimed) pieces, with counts.",
+        description=(
+            "Values present among browsable (not claimed) pieces, with counts. `availability` "
+            "counts every public piece by where it stands: on the rail, on hold, claimed."
+        ),
         responses={200: FacetsSerializer},
         auth=[],
     )
     def get(self, request):
-        pieces = services.public_accessions().exclude(status=AccessionStatus.CLAIMED).order_by()
+        public = services.public_accessions().order_by()
+        pieces = public.exclude(status=AccessionStatus.CLAIMED)
         prices = pieces.aggregate(price_min=Min("price_kes"), price_max=Max("price_kes"))
         drops = (
             pieces.filter(drop__isnull=False)
@@ -178,6 +183,14 @@ class FacetsView(APIView):
             .order_by("-drop__number")
         )
         data = {
+            "availability": [
+                {"value": "on_rail", "count": public.filter(status__in=ON_RAIL).count()},
+                {"value": "on_hold", "count": public.filter(status=AccessionStatus.HELD).count()},
+                {
+                    "value": "claimed",
+                    "count": public.filter(status=AccessionStatus.CLAIMED).count(),
+                },
+            ],
             "category": _counts(pieces, "category"),
             "chest_band": _counts(pieces, "chest_band"),
             "condition": _counts(pieces, "condition_grade"),

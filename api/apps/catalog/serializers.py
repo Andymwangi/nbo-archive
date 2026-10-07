@@ -217,6 +217,9 @@ class FacetCountSerializer(serializers.Serializer):
 
 
 class FacetsSerializer(serializers.Serializer):
+    availability = FacetCountSerializer(
+        many=True, help_text="on_rail, on_hold and claimed counts across every public piece."
+    )
     category = FacetCountSerializer(many=True)
     chest_band = FacetCountSerializer(many=True)
     condition = FacetCountSerializer(many=True)

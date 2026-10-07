@@ -19,6 +19,13 @@ SORTS = {
 }
 
 
+AVAILABILITY = [
+    ("on_rail", "On the rail"),
+    ("on_hold", "On hold"),
+    ("claimed", "Claimed"),
+]
+
+
 class _TextInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
     """Comma-separated values matched case-insensitively (`?brand=Lacoste,fila`)."""
 
@@ -45,6 +52,9 @@ class PublicAccessionFilter(django_filters.FilterSet):
     price_min = django_filters.NumberFilter(field_name="price_kes", lookup_expr="gte")
     price_max = django_filters.NumberFilter(field_name="price_kes", lookup_expr="lte")
     include_claimed = django_filters.BooleanFilter(method="filter_include_claimed")
+    availability = django_filters.MultipleChoiceFilter(
+        choices=AVAILABILITY, method="filter_availability"
+    )
     sort = django_filters.ChoiceFilter(
         choices=[(key, key) for key in SORTS], method="filter_sort", empty_label=None
     )
@@ -56,7 +66,10 @@ class PublicAccessionFilter(django_filters.FilterSet):
     @property
     def qs(self):
         queryset = super().qs
-        if not self.form.cleaned_data.get("include_claimed"):
+        wants_claimed = self.form.cleaned_data.get("include_claimed") or "claimed" in (
+            self.form.cleaned_data.get("availability") or []
+        )
+        if not wants_claimed:
             queryset = queryset.exclude(status=AccessionStatus.CLAIMED)
         if not self.form.cleaned_data.get("sort"):
             queryset = queryset.order_by(*SORTS["newest"])
@@ -64,6 +77,18 @@ class PublicAccessionFilter(django_filters.FilterSet):
 
     def filter_include_claimed(self, queryset, name, value):
         return queryset
+
+    def filter_availability(self, queryset, name, value):
+        if not value:
+            return queryset
+        statuses = {
+            # Public reads only ever include scheduled pieces whose release time has passed.
+            "on_rail": [AccessionStatus.LIVE, AccessionStatus.SCHEDULED],
+            "on_hold": [AccessionStatus.HELD],
+            "claimed": [AccessionStatus.CLAIMED],
+        }
+        wanted = [status for option in value for status in statuses[option]]
+        return queryset.filter(status__in=wanted)
 
     def filter_sort(self, queryset, name, value):
         return queryset.order_by(*SORTS[value])

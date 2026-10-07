@@ -45,14 +45,16 @@ Bootstrap the first owner with `python manage.py create_owner --email ... --name
 |---|---|---|
 | GET | `/catalog/accessions/` | Browse public pieces (paginated cards, newest first) |
 | GET | `/catalog/accessions/{archive_no}/` | One piece with photos, flaws, measurements and up to 4 pieces from the same era. Accepts `NBO-0142`, `0142` or `142` |
-| GET | `/catalog/facets/` | Values and counts for the filter drawer, plus `price_min` / `price_max` |
+| GET | `/catalog/facets/` | Values and counts for the filter drawer, plus `price_min` / `price_max` and `availability` counts (on the rail, on hold, claimed) |
 | GET | `/catalog/pulse/` | The live strip: `next_drop` (soonest scheduled drop not yet open, or null), `on_rail` (pieces for sale), `on_hold` (pieces held right now) |
 | GET | `/catalog/drops/` | Scheduled and released drops, newest first |
 | GET | `/catalog/drops/{number}/` | One drop. Its pieces come from `/catalog/accessions/?drop={number}` |
 
 Browse filters: `category`, `size` (measured chest band) and `condition` repeat for several values
 (`?category=polo&category=tee`); `brand`, `colour` and `era` take comma-separated values matched
-case-insensitively; `drop`, `price_min`, `price_max` (whole shillings); `include_claimed=true`;
+case-insensitively; `drop`, `price_min`, `price_max` (whole shillings); `availability` repeats
+for `on_rail`, `on_hold`, `claimed` (without it, browse shows the rail and holds);
+`include_claimed=true` (older equivalent of adding claimed pieces);
 `sort` = `newest` (default), `price`, `-price`, `number`, `-number`.
 
 Public pieces are those `live`, `held` or `claimed`, plus `scheduled` pieces whose release time
