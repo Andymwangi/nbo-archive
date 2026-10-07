@@ -1,6 +1,6 @@
 # Status
 
-Updated: 2026-10-06
+Updated: 2026-10-07
 
 ## Module progress
 
@@ -8,7 +8,7 @@ Updated: 2026-10-06
 |---|---|---|---|---|
 | 1 | Bootstrap (settings, Swagger, Celery, error envelope, health) | Done | -- | |
 | 2 | Auth (magic link, JWT, admin users, roles) | Done | Done | Login, verify, desk, staff room. Awaiting owner visual check |
-| 3 | Catalog (accessions, drops, images, filters) | Done | In progress | 3a backend, 3b storefront done; 3c admin desk next. Storefront awaiting owner visual check |
+| 3 | Catalog (accessions, drops, images, filters) | Done | Done | 3a backend, 3b storefront, 3c admin desk (accessions, piece editor, photos, flaws, drops). Awaiting owner visual check |
 | 4 | Inventory holds | Pending | Pending | |
 | 5 | Orders + shipping zones | Pending | Pending | |
 | 6 | Payments (mock, then Daraja) | Pending | Pending | |
@@ -30,8 +30,7 @@ Created with real content in their module, not as empty placeholders (an empty `
 
 - Storefront: `/hold`, `/orders/track`, `/orders/[orderNo]`, `/field-notes`, `/about`,
   `/policies/[slug]`, `/style-guide`.
-- Admin desk: `/admin/list`, `/admin/accessions`, `/admin/accessions/[id]`, `/admin/drops`,
-  `/admin/orders`, `/admin/orders/[id]/slip`.
+- Admin desk: `/admin/list`, `/admin/orders`, `/admin/orders/[id]/slip`.
 
 
 ## Known limitations
@@ -61,11 +60,11 @@ Created with real content in their module, not as empty placeholders (an empty `
 - `api/Dockerfile` uses Python 3.14 while the project targets 3.12.
 - Storefront data is cached for 60 seconds per API call, served stale-while-revalidate: after the
   minute, the first visit still gets the old data while it refreshes, the next gets the new. So a
-  newly listed, held or claimed piece shows in the archive a minute or so late (measured: a drop
-  released at 07:13:12 appeared in the archive by 07:14:43) until 3c's admin writes call
-  `revalidateTag`. A drop
-  page opens at its release time regardless, because it checks the clock rather than the cached
-  status.
+  piece that changes without a desk action (a scheduled release by the beat task; holds and
+  claims once Modules 4-5 exist) shows a minute or so late. Desk writes expire the `catalog` tag
+  with `updateTag`, so their edits show at once (measured: a publish, a rename and a withdraw were
+  each visible on the next storefront request). A drop page opens at its release time regardless,
+  because it checks the clock rather than the cached status.
 - The storefront filter drawer needs JavaScript; sort, active filters, paging and the archive-number
   jump are plain links and forms that work without it.
 - A production build (`next start`) against an API on localhost cannot show photos: Next's image
@@ -78,3 +77,11 @@ Created with real content in their module, not as empty placeholders (an empty `
 - `npm audit` reports 5 high-severity advisories in `braces`, pulled in by `eslint-config-next`
   (lint tooling only, not shipped). The fix is a forced breaking upgrade; left for the next
   eslint-config-next release.
+- Photo uploads go through `POST /admin/accessions/[id]/photos`, a Route Handler that proxy.ts
+  skips: proxy buffers request bodies up to 10 MB and silently truncates larger ones. The handler
+  checks the origin, refreshes the access cookie and checks the role itself. A batch of photos is
+  uploaded with one kind; set each photo's kind afterwards.
+- The new-piece and drop drawers, confirm dialogs and photo uploads need JavaScript. The piece
+  editor's section forms work without it.
+- `next dev` writes `web/AGENTS.md` and `web/CLAUDE.md` (Next 16.3 agent rules). They are not
+  committed; set `agentRules: false` in next.config to stop it.
