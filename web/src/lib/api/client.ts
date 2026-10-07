@@ -4,15 +4,26 @@ import { ApiError, type FieldErrors } from "@/lib/api/errors";
 
 type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
+type QueryValue = string | number | undefined;
+export type Query = Record<string, QueryValue | readonly QueryValue[]>;
+
 export type RequestOptions<S extends z.ZodTypeAny> = {
   method?: Method;
   body?: unknown;
   token?: string;
   schema: S;
   signal?: AbortSignal;
-  query?: Record<string, string | number | undefined>;
+  /** Arrays become repeated parameters (`?size=m&size=l`). Empty values are dropped. */
+  query?: Query;
   /** Visitor address to forward on unauthenticated calls made from the server. */
   clientIp?: string;
+  /**
+   * Cache the response in Next's data cache for this many seconds. Without `revalidate` or
+   * `tags` every call goes to the API.
+   */
+  revalidate?: number;
+  /** Cache tags, so admin writes can refresh affected pages with `revalidateTag`. */
+  tags?: string[];
 };
 
 const API_PREFIX = "/api/v1";
@@ -30,12 +41,26 @@ function baseUrl(): string {
   return url.replace(/\/$/, "");
 }
 
-function buildUrl(path: string, query?: RequestOptions<z.ZodTypeAny>["query"]): string {
+export function buildUrl(path: string, query?: Query): string {
   const url = new URL(`${baseUrl()}${API_PREFIX}${path}`);
-  for (const [key, value] of Object.entries(query ?? {})) {
-    if (value !== undefined && value !== "") url.searchParams.set(key, String(value));
+  for (const [key, raw] of Object.entries(query ?? {})) {
+    const values: readonly QueryValue[] = Array.isArray(raw) ? raw : [raw as QueryValue];
+    for (const value of values) {
+      if (value !== undefined && value !== "") url.searchParams.append(key, String(value));
+    }
   }
   return url.toString();
+}
+
+/*
+  Calls the server makes on its own account (page renders and cache refreshes, which have no
+  visitor behind them) carry the shared token so the API does not rate-limit the web server as
+  one anonymous client. Calls made for a visitor forward their address instead and stay limited
+  per visitor. The token never reaches the browser: it is not a NEXT_PUBLIC_ variable.
+*/
+function internalToken(clientIp?: string): string | undefined {
+  if (typeof window !== "undefined" || clientIp) return undefined;
+  return process.env.INTERNAL_API_TOKEN || undefined;
 }
 
 type ErrorEnvelope = { error?: { code?: string; message?: string; fields?: FieldErrors } };
@@ -58,12 +83,26 @@ async function toApiError(response: Response): Promise<ApiError> {
 
 export async function apiRequest<S extends z.ZodTypeAny>(
   path: string,
-  { method = "GET", body, token, schema, signal, query, clientIp }: RequestOptions<S>,
+  {
+    method = "GET",
+    body,
+    token,
+    schema,
+    signal,
+    query,
+    clientIp,
+    revalidate,
+    tags,
+  }: RequestOptions<S>,
 ): Promise<z.infer<S>> {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
   if (clientIp) headers["X-Forwarded-For"] = clientIp;
+  const internal = internalToken(clientIp);
+  if (internal) headers["X-Internal-Token"] = internal;
+
+  const cached = method === "GET" && !token && (revalidate !== undefined || tags !== undefined);
 
   let response: Response;
   try {
@@ -72,7 +111,7 @@ export async function apiRequest<S extends z.ZodTypeAny>(
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
       signal,
-      cache: "no-store",
+      ...(cached ? { next: { revalidate, tags } } : { cache: "no-store" as const }),
     });
   } catch (cause) {
     if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
