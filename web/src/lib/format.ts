@@ -47,6 +47,13 @@ export function countdown(target: Date, now: Date): Countdown {
   return { days, hours, minutes, seconds: rest - minutes * 60 };
 }
 
+/** Whole minutes left until `iso`, rounded up so "45 seconds" reads as 1, never negative. */
+export function minutesUntil(iso: string, now: Date = new Date()): number {
+  const target = new Date(iso).getTime();
+  if (Number.isNaN(target)) return 0;
+  return Math.max(0, Math.ceil((target - now.getTime()) / 60_000));
+}
+
 /** Two-digit pad for clock faces. */
 export function pad2(value: number): string {
   return String(value).padStart(2, "0");

@@ -6,6 +6,7 @@ import {
   getPiece,
   parseArchiveFilters,
   pieceCardSchema,
+  pieceSchema,
 } from "@/lib/api/catalog";
 
 describe("parseArchiveFilters", () => {
@@ -123,6 +124,44 @@ describe("pieceCardSchema", () => {
 
   it("rejects statuses the public API never sends", () => {
     expect(pieceCardSchema.safeParse({ ...card, status: "draft" }).success).toBe(false);
+  });
+});
+
+describe("pieceSchema", () => {
+  const record = {
+    archive_no: "NBO-0142",
+    title: "Navy pique polo",
+    category: "polo",
+    brand: "Lacoste",
+    tagged_size: "L",
+    chest_band: "l",
+    colour: "Navy",
+    era: "",
+    condition_grade: "excellent",
+    price_kes: 2800,
+    status: "held",
+    published_at: "2026-10-01T09:00:00+03:00",
+    is_placeholder: false,
+    fit_note: "",
+    fabric_composition: "100% cotton",
+    measurements: { chest: 57 },
+    category_extras: {},
+    cleaned_at: null,
+    provenance_note: "",
+    drop: null,
+    images: [],
+    flaws: [],
+    claimed: null,
+    related: [],
+  };
+
+  it("reads when a held piece comes back", () => {
+    const parsed = pieceSchema.parse({ ...record, hold: { expires_at: "2026-10-07T12:15:00Z" } });
+    expect(parsed.hold?.expires_at).toBe("2026-10-07T12:15:00Z");
+  });
+
+  it("still reads a cached record written before holds existed", () => {
+    expect(pieceSchema.parse(record).hold).toBeNull();
   });
 });
 

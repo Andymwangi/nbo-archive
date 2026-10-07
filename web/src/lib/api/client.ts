@@ -18,6 +18,8 @@ export type RequestOptions<S extends z.ZodTypeAny> = {
   query?: Query;
   /** Visitor address to forward on unauthenticated calls made from the server. */
   clientIp?: string;
+  /** The storefront visitor's random key, for holds. A request carrying it is never cached. */
+  visitorToken?: string;
   /**
    * Cache the response in Next's data cache for this many seconds. Without `revalidate` or
    * `tags` every call goes to the API.
@@ -54,13 +56,14 @@ export function buildUrl(path: string, query?: Query): string {
 }
 
 /*
-  Calls the server makes on its own account (page renders and cache refreshes, which have no
+  Reads the server makes on its own account (page renders and cache refreshes, which have no
   visitor behind them) carry the shared token so the API does not rate-limit the web server as
-  one anonymous client. Calls made for a visitor forward their address instead and stay limited
-  per visitor. The token never reaches the browser: it is not a NEXT_PUBLIC_ variable.
+  one anonymous client. Writes never carry it, and calls made for a visitor forward their address
+  instead, so anything a visitor can trigger stays limited per visitor. The token never reaches
+  the browser: it is not a NEXT_PUBLIC_ variable.
 */
-function internalToken(clientIp?: string): string | undefined {
-  if (typeof window !== "undefined" || clientIp) return undefined;
+function internalToken(method: Method, clientIp?: string): string | undefined {
+  if (typeof window !== "undefined" || clientIp || method !== "GET") return undefined;
   return process.env.INTERNAL_API_TOKEN || undefined;
 }
 
@@ -92,6 +95,7 @@ export async function apiRequest<S extends z.ZodTypeAny>(
     signal,
     query,
     clientIp,
+    visitorToken,
     revalidate,
     tags,
   }: RequestOptions<S>,
@@ -101,10 +105,12 @@ export async function apiRequest<S extends z.ZodTypeAny>(
   if (body !== undefined && !multipart) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
   if (clientIp) headers["X-Forwarded-For"] = clientIp;
-  const internal = internalToken(clientIp);
+  if (visitorToken) headers["X-Visitor-Token"] = visitorToken;
+  const internal = internalToken(method, clientIp);
   if (internal) headers["X-Internal-Token"] = internal;
 
-  const cached = method === "GET" && !token && (revalidate !== undefined || tags !== undefined);
+  const cached =
+    method === "GET" && !token && !visitorToken && (revalidate !== undefined || tags !== undefined);
 
   let response: Response;
   try {

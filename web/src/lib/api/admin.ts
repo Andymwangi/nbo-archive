@@ -93,6 +93,7 @@ export const adminPieceSchema = z.object({
   flaws: z.array(flawSchema),
   created_by: z.string().nullable(),
   problems: z.record(z.string(), z.array(z.string())),
+  active_hold: z.object({ expires_at: z.string(), created_at: z.string() }).nullable(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -213,6 +214,15 @@ export function schedulePiece(access: string, id: number, releaseAt?: string) {
 
 export function withdrawPiece(access: string, id: number) {
   return apiRequest(`/admin/accessions/${id}/withdraw/`, {
+    method: "POST",
+    token: access,
+    schema: adminPieceSchema,
+  });
+}
+
+/** Clear a stuck hold and put the piece back on sale. */
+export function releasePieceHold(access: string, id: number) {
+  return apiRequest(`/admin/accessions/${id}/release-hold/`, {
     method: "POST",
     token: access,
     schema: adminPieceSchema,

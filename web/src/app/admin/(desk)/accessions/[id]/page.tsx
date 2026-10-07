@@ -95,6 +95,9 @@ export default async function PiecePage({ params }: Props) {
             {piece.status === "scheduled" && piece.release_at ? (
               <span>{copy.pieceDesk.releaseAt(formatDateTime(piece.release_at))}</span>
             ) : null}
+            {piece.status === "held" && piece.active_hold ? (
+              <span>{copy.pieceDesk.heldUntil(formatDateTime(piece.active_hold.expires_at))}</span>
+            ) : null}
             {piece.status === "live" && piece.published_at ? (
               <span>{copy.pieceDesk.publishedAt(formatDateTime(piece.published_at))}</span>
             ) : null}

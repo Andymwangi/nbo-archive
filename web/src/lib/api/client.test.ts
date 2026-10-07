@@ -71,6 +71,24 @@ describe("apiRequest", () => {
     }
   });
 
+  it("never sends the token on writes, so nothing a visitor triggers skips the limits", async () => {
+    const fetchMock = stubFetch();
+    await apiRequest("/holds/", { schema: ok, method: "POST", body: {} });
+    await apiRequest("/holds/1/", { schema: ok, method: "DELETE" });
+    for (const [, init] of fetchMock.mock.calls) {
+      expect((init!.headers as Record<string, string>)["X-Internal-Token"]).toBeUndefined();
+    }
+  });
+
+  it("sends the visitor key and never caches a visitor's own request", async () => {
+    const fetchMock = stubFetch();
+    await apiRequest("/holds/", { schema: ok, visitorToken: "v".repeat(43), revalidate: 60 });
+    const { init, headers } = sent(fetchMock);
+    expect(headers["X-Visitor-Token"]).toBe("v".repeat(43));
+    expect(init.cache).toBe("no-store");
+    expect(init.next).toBeUndefined();
+  });
+
   it("sends the internal token on the server's own calls", async () => {
     const fetchMock = stubFetch();
     await apiRequest("/catalog/drops/", { schema: ok });

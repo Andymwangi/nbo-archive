@@ -55,6 +55,16 @@ export function PieceActions({ piece, readOnly }: { piece: AdminPiece; readOnly:
             disabled={pending}
           />
         ) : null}
+        {!readOnly && status === "held" ? (
+          <ConfirmDialog
+            formId={formId("release_hold")}
+            trigger={copy.pieceDesk.releaseHold}
+            title={copy.pieceDesk.releaseHoldTitle}
+            body={copy.pieceDesk.releaseHoldBody}
+            confirm={copy.pieceDesk.releaseHold}
+            disabled={pending}
+          />
+        ) : null}
         {!readOnly && canPublish ? <ScheduleButton piece={piece} /> : null}
         {!readOnly && canPublish ? (
           <Button type="submit" form={formId("publish")} icon="check" disabled={pending}>
@@ -63,7 +73,7 @@ export function PieceActions({ piece, readOnly }: { piece: AdminPiece; readOnly:
         ) : null}
       </div>
 
-      {["publish", "withdraw", "delete"].map((intent) => (
+      {["publish", "withdraw", "delete", "release_hold"].map((intent) => (
         <form key={intent} id={formId(intent)} action={formAction} hidden>
           <input type="hidden" name="intent" value={intent} />
           <input type="hidden" name="id" value={piece.id} />

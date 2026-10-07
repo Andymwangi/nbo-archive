@@ -289,6 +289,47 @@ export const copy = {
     next: "Next accession",
   },
 
+  hold: {
+    place: "Place on hold",
+    placing: "Holding",
+    placeNote:
+      "One tap keeps it for you for 15 minutes while you pay. Nobody else can take it in that time.",
+    yours: "Held for you",
+    yoursNote: "It is yours for the time on the clock. Let it go if you change your mind.",
+    timerLabel: "Time left on your hold",
+    expiredNote: "Your time ran out and the piece went back on the rail.",
+    release: "Let it go",
+    releasing: "Letting go",
+    released: "Let go. It is back on the rail.",
+    seeHolds: "Your holds",
+    backIn: (minutes: number) =>
+      minutes <= 1
+        ? "Someone is paying for this right now. If they let it go, it comes back within a minute."
+        : `Someone is paying for this right now. If they let it go, it comes back in about ${minutes} minutes.`,
+    errors: {
+      pieceHeld:
+        "Someone got to it a moment before you. If they let it go, it comes back within 15 minutes.",
+      notForSale: "This piece is no longer for sale.",
+      limit: (max: number) =>
+        `You are already holding ${max} pieces, the most at once. Let one go to hold this one.`,
+      closed: "Holds are not open yet.",
+      gone: "That piece is no longer in the archive.",
+    },
+    page: {
+      eyebrow: "Holds",
+      title: "On hold for you",
+      count: (n: number) => (n === 1 ? "1 piece" : `${n} pieces`),
+      emptyTitle: "Nothing on hold.",
+      emptyBody:
+        "Find something in the archive and tap Place on hold. It keeps the piece for you for 15 minutes.",
+      browse: "Back to the archive",
+      checkoutSoon:
+        "Paying online opens in the next update. Until then a hold keeps a piece off the rail for the time on its clock.",
+      open: "Open the record",
+    },
+    nav: (n: number) => `On hold (${n})`,
+  },
+
   pieceStatus: {
     draft: "Draft",
     scheduled: "Scheduled",
@@ -370,6 +411,12 @@ export const copy = {
     withdrawTitle: "Take this piece off the archive?",
     withdrawBody: "It leaves the storefront straight away. You can publish it again later.",
     withdrawn: "Withdrawn. It is off the storefront.",
+    heldUntil: (when: string) => `On hold until ${when}`,
+    releaseHold: "Release hold",
+    releaseHoldTitle: "Put this piece back on the rail?",
+    releaseHoldBody:
+      "The visitor holding it loses their hold now, before their clock runs out. Use this for a stuck hold.",
+    holdReleased: "Hold released. It is back on the rail.",
     deleteDraft: "Delete draft",
     deleteTitle: "Delete this draft?",
     deleteBody: (archiveNo: string) =>

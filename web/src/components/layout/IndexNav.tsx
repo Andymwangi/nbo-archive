@@ -22,15 +22,28 @@ const tabs = [
   { href: "/drops", label: copy.nav.drops, match: (path: string) => path.startsWith("/drops") },
 ];
 
-export function IndexNav() {
+export function IndexNav({ holdCount }: { holdCount: number }) {
   const pathname = usePathname() ?? "/";
+  const onHoldPage = pathname.startsWith("/hold");
   return (
     <header className="border-b-[1.5px] border-ink">
-      <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 pt-4 md:px-8 md:pt-5">
+      <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 px-4 pt-4 md:px-8 md:pt-5">
         <Link href="/" className="meta text-lead tracking-[0.18em] no-underline">
           {copy.brand.name}
         </Link>
-        <ArchiveJump />
+        <div className="flex items-center gap-4">
+          {holdCount > 0 ? (
+            <Link
+              href="/hold"
+              aria-current={onHoldPage ? "page" : undefined}
+              className="inline-flex min-h-11 items-center gap-2 meta text-signal no-underline hover:underline"
+            >
+              <span aria-hidden className="size-2 rounded-hole bg-signal" />
+              {copy.hold.nav(holdCount)}
+            </Link>
+          ) : null}
+          <ArchiveJump />
+        </div>
       </div>
       <nav aria-label={copy.nav.label} className="mx-auto mt-4 max-w-[90rem] px-4 md:px-8">
         <ul className="-mb-[1.5px] flex gap-1">

@@ -19,6 +19,7 @@ import {
   type PieceChanges,
   publishPiece,
   releaseDrop,
+  releasePieceHold,
   reorderPhotos,
   scheduleDrop,
   schedulePiece,
@@ -225,6 +226,7 @@ const transitionSchema = z.discriminatedUnion("intent", [
   z.object({ intent: z.literal("publish"), id: idSchema }),
   z.object({ intent: z.literal("withdraw"), id: idSchema }),
   z.object({ intent: z.literal("delete"), id: idSchema }),
+  z.object({ intent: z.literal("release_hold"), id: idSchema }),
   z.object({
     intent: z.literal("schedule"),
     id: idSchema,
@@ -265,6 +267,10 @@ export async function pieceTransitionAction(_: FormState, formData: FormData): P
       case "delete":
         await deletePiece(access, input.id);
         message = "";
+        break;
+      case "release_hold":
+        await releasePieceHold(access, input.id);
+        message = copy.pieceDesk.holdReleased;
         break;
       case "schedule": {
         const piece = await schedulePiece(access, input.id, releaseAt);

@@ -5,6 +5,7 @@ import {
   formatDate,
   formatKes,
   fromNairobiInput,
+  minutesUntil,
   pad2,
   toNairobiInput,
 } from "@/lib/format";
@@ -73,5 +74,21 @@ describe("Nairobi datetime inputs", () => {
   it("leaves empty and malformed timestamps blank", () => {
     expect(toNairobiInput(null)).toBe("");
     expect(toNairobiInput("not a date")).toBe("");
+  });
+});
+
+describe("minutesUntil", () => {
+  const now = new Date("2026-10-07T12:00:00Z");
+
+  it("rounds part of a minute up so a hold never reads as over early", () => {
+    expect(minutesUntil("2026-10-07T12:14:01Z", now)).toBe(15);
+    expect(minutesUntil("2026-10-07T12:00:45Z", now)).toBe(1);
+    expect(minutesUntil("2026-10-07T12:15:00Z", now)).toBe(15);
+  });
+
+  it("never goes below zero and copes with a bad timestamp", () => {
+    expect(minutesUntil("2026-10-07T11:59:00Z", now)).toBe(0);
+    expect(minutesUntil("2026-10-07T12:00:00Z", now)).toBe(0);
+    expect(minutesUntil("not a date", now)).toBe(0);
   });
 });

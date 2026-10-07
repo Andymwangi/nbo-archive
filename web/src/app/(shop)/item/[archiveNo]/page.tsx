@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { connection } from "next/server";
 
@@ -6,14 +7,18 @@ import { ArchiveNumber } from "@/components/archive/ArchiveNumber";
 import { ClaimedStamp } from "@/components/archive/ClaimedStamp";
 import { ContactSheetGrid } from "@/components/archive/ContactSheetGrid";
 import { FlawGallery } from "@/components/archive/FlawGallery";
+import { PlaceHoldForm, ReleaseHoldForm } from "@/components/archive/HoldControls";
+import { HoldTimer } from "@/components/archive/HoldTimer";
 import { LabelCard } from "@/components/archive/LabelCard";
 import { MeasurementTable } from "@/components/archive/MeasurementTable";
 import { PhotoSheet } from "@/components/archive/PhotoSheet";
 import { Tag } from "@/components/primitives/Tag";
 import { copy } from "@/content/copy";
 import { type Piece, getPiece } from "@/lib/api/catalog";
+import type { Hold } from "@/lib/api/holds";
 import { canonicalArchiveNo } from "@/lib/archive-no";
-import { formatDate, formatKes } from "@/lib/format";
+import { formatDate, formatKes, minutesUntil } from "@/lib/format";
+import { currentHolds, holdsEnabled } from "@/lib/visitor";
 
 /*
   Signature moment: the record reads like a museum object file. The archive number is set at
@@ -66,7 +71,8 @@ export async function generateMetadata({
 export default async function ItemPage({ params }: PageProps<"/item/[archiveNo]">) {
   await connection();
   const { archiveNo } = await params;
-  const piece = await load(archiveNo);
+  const [piece, holds] = await Promise.all([load(archiveNo), currentHolds()]);
+  const mine = holds.find((hold) => hold.piece.archive_no === piece.archive_no);
 
   return (
     <div className="flex flex-col gap-16 md:gap-24">
@@ -91,7 +97,7 @@ export default async function ItemPage({ params }: PageProps<"/item/[archiveNo]"
           <PhotoSheet images={piece.images} title={piece.title} />
           <div className="flex flex-col gap-10 lg:sticky lg:top-8 lg:self-start">
             <LabelCard piece={piece} />
-            <StatusSlot piece={piece} />
+            <StatusSlot piece={piece} mine={mine} holdsOpen={holdsEnabled()} now={new Date()} />
           </div>
         </div>
 
@@ -126,10 +132,22 @@ export default async function ItemPage({ params }: PageProps<"/item/[archiveNo]"
 }
 
 /*
-  Where "Place on hold" will go (Module 4). Until holds exist it states where the piece stands
-  instead of offering a button that does nothing.
+  Where the piece stands, and what this visitor can do about it. The piece record is cached for a
+  minute, but the visitor's own holds are read fresh, so "held for you" is always current. A piece
+  shown as held whose clock has run out is treated as back on the rail: placing a hold ends the
+  lapsed one on the spot.
 */
-function StatusSlot({ piece }: { piece: Piece }) {
+function StatusSlot({
+  piece,
+  mine,
+  holdsOpen,
+  now,
+}: {
+  piece: Piece;
+  mine: Hold | undefined;
+  holdsOpen: boolean;
+  now: Date;
+}) {
   if (piece.status === "claimed") {
     const claimedAt = piece.claimed?.claimed_at;
     const city = piece.claimed?.city ?? "";
@@ -149,18 +167,56 @@ function StatusSlot({ piece }: { piece: Piece }) {
       </section>
     );
   }
-  if (piece.status === "held") {
+
+  if (mine) {
     return (
-      <section className="flex flex-col items-start gap-3 border-[1.5px] border-signal p-5">
-        <Tag tone="signal">{copy.piece.held}</Tag>
-        <p className="text-body">{copy.item.heldNote}</p>
+      <section
+        aria-labelledby="your-hold"
+        className="flex flex-col items-start gap-4 border-[1.5px] border-signal bg-paper-2 p-5"
+      >
+        <Tag tone="signal">
+          <span id="your-hold">{copy.hold.yours}</span>
+        </Tag>
+        <HoldTimer
+          expiresAt={mine.expires_at}
+          serverNow={now.toISOString()}
+          fallbackMinutes={minutesUntil(mine.expires_at, now)}
+        />
+        <p className="text-body text-ink-muted">{copy.hold.yoursNote}</p>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <Link href="/hold" className="inline-flex min-h-11 items-center meta">
+            {copy.hold.seeHolds}
+          </Link>
+          <ReleaseHoldForm holdId={mine.id} archiveNo={piece.archive_no} />
+        </div>
       </section>
     );
   }
+
+  const heldMinutes =
+    piece.status === "held" && piece.hold ? minutesUntil(piece.hold.expires_at, now) : null;
+  if (piece.status === "held" && (heldMinutes === null || heldMinutes > 0 || !holdsOpen)) {
+    return (
+      <section className="flex flex-col items-start gap-3 border-[1.5px] border-signal p-5">
+        <Tag tone="signal">{copy.piece.held}</Tag>
+        <p className="text-body">
+          {heldMinutes ? copy.hold.backIn(heldMinutes) : copy.item.heldNote}
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="flex flex-col items-start gap-3 border-[1.5px] border-dashed border-ink p-5">
       <Tag>{copy.item.onRail}</Tag>
-      <p className="text-body text-ink-muted">{copy.item.holdsSoon}</p>
+      {holdsOpen ? (
+        <>
+          <p className="text-body text-ink-muted">{copy.hold.placeNote}</p>
+          <PlaceHoldForm archiveNo={piece.archive_no} />
+        </>
+      ) : (
+        <p className="text-body text-ink-muted">{copy.item.holdsSoon}</p>
+      )}
     </section>
   );
 }

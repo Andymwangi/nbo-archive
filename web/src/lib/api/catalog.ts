@@ -83,6 +83,11 @@ export const pieceSchema = pieceCardSchema.omit({ cover: true, drop_number: true
   images: z.array(imageSchema),
   flaws: z.array(flawSchema),
   claimed: z.object({ city: z.string(), claimed_at: z.string().nullable() }).nullable(),
+  /**
+   * While held: when the piece comes back. Defaulted because cached responses written before the
+   * field existed can outlive a deploy; a field added to a cached read must never be required.
+   */
+  hold: z.object({ expires_at: z.string() }).nullable().default(null),
   related: z.array(pieceCardSchema),
 });
 export type Piece = z.infer<typeof pieceSchema>;
