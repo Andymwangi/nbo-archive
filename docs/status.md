@@ -8,7 +8,7 @@ Updated: 2026-10-06
 |---|---|---|---|---|
 | 1 | Bootstrap (settings, Swagger, Celery, error envelope, health) | Done | -- | |
 | 2 | Auth (magic link, JWT, admin users, roles) | Done | Done | Login, verify, desk, staff room. Awaiting owner visual check |
-| 3 | Catalog (accessions, drops, images, filters) | Done | Pending | 3a backend done; 3b storefront and 3c admin desk next |
+| 3 | Catalog (accessions, drops, images, filters) | Done | In progress | 3a backend, 3b storefront done; 3c admin desk next. Storefront awaiting owner visual check |
 | 4 | Inventory holds | Pending | Pending | |
 | 5 | Orders + shipping zones | Pending | Pending | |
 | 6 | Payments (mock, then Daraja) | Pending | Pending | |
@@ -28,13 +28,11 @@ Updated: 2026-10-06
 Created with real content in their module, not as empty placeholders (an empty `page.tsx` breaks
 `next build`):
 
-- Storefront: `/` (latest accession), `/archive`, `/item/[archiveNo]`, `/drops`, `/drops/[number]`,
-  `/hold`, `/orders/track`, `/orders/[orderNo]`, `/field-notes`, `/about`, `/policies/[slug]`,
-  `/style-guide`.
+- Storefront: `/hold`, `/orders/track`, `/orders/[orderNo]`, `/field-notes`, `/about`,
+  `/policies/[slug]`, `/style-guide`.
 - Admin desk: `/admin/list`, `/admin/accessions`, `/admin/accessions/[id]`, `/admin/drops`,
   `/admin/orders`, `/admin/orders/[id]/slip`.
 
-Until `/` exists, the 404 page's "Back to the archive" link lands on the same 404.
 
 ## Known limitations
 
@@ -61,3 +59,22 @@ Until `/` exists, the 404 page's "Back to the archive" link lands on the same 40
 - The Django admin (`/django-admin/`) shows catalogue records read-only. Every catalogue write goes
   through the API so photo metadata stripping and the publishing rules always apply.
 - `api/Dockerfile` uses Python 3.14 while the project targets 3.12.
+- Storefront data is cached for 60 seconds per API call, served stale-while-revalidate: after the
+  minute, the first visit still gets the old data while it refreshes, the next gets the new. So a
+  newly listed, held or claimed piece shows in the archive a minute or so late (measured: a drop
+  released at 07:13:12 appeared in the archive by 07:14:43) until 3c's admin writes call
+  `revalidateTag`. A drop
+  page opens at its release time regardless, because it checks the clock rather than the cached
+  status.
+- The storefront filter drawer needs JavaScript; sort, active filters, paging and the archive-number
+  jump are plain links and forms that work without it.
+- A production build (`next start`) against an API on localhost cannot show photos: Next's image
+  optimiser refuses private addresses outside dev (`dangerouslyAllowLocalIP` is dev-only on
+  purpose). Use `npm run dev` locally; in production the media host is public.
+- A malformed percent-escape in a dynamic route (`/item/%E0%A4%A`) returns 500 from Next's own
+  parameter decoding before page code runs.
+- The "next accession" on the home page is looked up on the first page of drops (24 highest
+  numbers).
+- `npm audit` reports 5 high-severity advisories in `braces`, pulled in by `eslint-config-next`
+  (lint tooling only, not shipped). The fix is a forced breaking upgrade; left for the next
+  eslint-config-next release.
