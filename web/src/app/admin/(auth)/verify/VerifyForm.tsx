@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import { verifyLinkAction } from "@/app/admin/actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote, useActionFocus } from "@/components/form/Field";
 import { IndexCard } from "@/components/layout/IndexCard";
 import { Button } from "@/components/primitives/Button";
 import { copy } from "@/content/copy";
+import { idleState } from "@/lib/form-state";
 
 export function VerifyForm({ token }: { token: string }) {
   const [state, formAction, pending] = useActionState(verifyLinkAction, idleState);

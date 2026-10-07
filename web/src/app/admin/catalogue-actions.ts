@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { failure, stringValues } from "@/app/admin/action-utils";
-import type { FormState } from "@/app/admin/form-state";
 import { copy } from "@/content/copy";
 import {
   addFlaw,
@@ -32,6 +31,7 @@ import {
 import { catalogTags, categories, conditions } from "@/lib/api/catalog";
 import { dropTags } from "@/lib/api/drops";
 import { isApiError } from "@/lib/api/errors";
+import type { FormState } from "@/lib/form-state";
 import { formatDateTime, fromNairobiInput } from "@/lib/format";
 import { extrasFromForm, measurementsFromForm } from "@/lib/piece-spec";
 import { requireRole } from "@/lib/session";

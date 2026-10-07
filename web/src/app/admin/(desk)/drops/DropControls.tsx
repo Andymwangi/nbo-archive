@@ -3,13 +3,13 @@
 import { useActionState, useState } from "react";
 
 import { dropTransitionAction, saveDropDetailsAction } from "@/app/admin/catalogue-actions";
-import { type FormState, idleState } from "@/app/admin/form-state";
 import { FormNote, TextAreaField, TextField, useActionFocus } from "@/components/form/Field";
 import { Button } from "@/components/primitives/Button";
 import { ConfirmDialog } from "@/components/primitives/Dialog";
 import { Drawer } from "@/components/primitives/Drawer";
 import { copy } from "@/content/copy";
 import type { AdminDrop } from "@/lib/api/admin";
+import { type FormState, idleState } from "@/lib/form-state";
 import { toNairobiInput } from "@/lib/format";
 
 const label = (drop: AdminDrop) => String(drop.number).padStart(2, "0");

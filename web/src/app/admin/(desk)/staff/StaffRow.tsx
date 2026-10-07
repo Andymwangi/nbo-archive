@@ -3,12 +3,12 @@
 import { useActionState } from "react";
 
 import { updateStaffAction } from "@/app/admin/actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote } from "@/components/form/Field";
 import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
 import { copy } from "@/content/copy";
 import { type AdminUser, adminRoleSchema } from "@/lib/api/types";
+import { idleState } from "@/lib/form-state";
 import { formatDateTime } from "@/lib/format";
 
 export function StaffRow({ member, isSelf }: { member: AdminUser; isSelf: boolean }) {

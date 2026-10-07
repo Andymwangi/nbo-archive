@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { pieceTransitionAction } from "@/app/admin/catalogue-actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote, TextField, useActionFocus } from "@/components/form/Field";
 import { Button } from "@/components/primitives/Button";
 import { ConfirmDialog } from "@/components/primitives/Dialog";
 import { Drawer } from "@/components/primitives/Drawer";
 import { copy } from "@/content/copy";
 import type { AdminPiece } from "@/lib/api/admin";
+import { idleState } from "@/lib/form-state";
 import { toNairobiInput } from "@/lib/format";
 
 const PUBLIC = new Set(["live", "held", "claimed"]);

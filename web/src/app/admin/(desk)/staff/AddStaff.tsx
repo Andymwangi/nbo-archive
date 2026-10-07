@@ -3,12 +3,12 @@
 import { useActionState, useState } from "react";
 
 import { createStaffAction } from "@/app/admin/actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote, TextField, useActionFocus } from "@/components/form/Field";
 import { Button } from "@/components/primitives/Button";
 import { Drawer } from "@/components/primitives/Drawer";
 import { copy } from "@/content/copy";
 import { adminRoleSchema } from "@/lib/api/types";
+import { idleState } from "@/lib/form-state";
 
 export function AddStaff() {
   const [open, setOpen] = useState(false);

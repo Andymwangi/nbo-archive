@@ -8,7 +8,6 @@ import {
   saveMeasurementsAction,
   savePieceDetailsAction,
 } from "@/app/admin/catalogue-actions";
-import { type FormState, idleState } from "@/app/admin/form-state";
 import {
   FormNote,
   SelectField,
@@ -20,6 +19,7 @@ import { Button } from "@/components/primitives/Button";
 import { copy } from "@/content/copy";
 import type { AdminDrop, AdminPiece } from "@/lib/api/admin";
 import { categories, conditions } from "@/lib/api/catalog";
+import { type FormState, idleState } from "@/lib/form-state";
 import { categoryExtras, extraField, measurementField, measurementKeys } from "@/lib/piece-spec";
 
 /*

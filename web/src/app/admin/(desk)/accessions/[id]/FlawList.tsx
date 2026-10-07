@@ -3,13 +3,13 @@
 import { useActionState } from "react";
 
 import { deleteFlawAction, saveFlawAction } from "@/app/admin/catalogue-actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote, SelectField, TextField, useActionFocus } from "@/components/form/Field";
 import { Button } from "@/components/primitives/Button";
 import { ConfirmDialog } from "@/components/primitives/Dialog";
 import { copy } from "@/content/copy";
 import type { AdminPiece } from "@/lib/api/admin";
 import type { Flaw } from "@/lib/api/catalog";
+import { idleState } from "@/lib/form-state";
 
 type Option = { value: string; label: string };
 

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useActionState, useId, useRef, useState } from "react";
 
 import { arrangePhotoAction, savePhotoAction } from "@/app/admin/catalogue-actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote, SelectField, TextField, useActionFocus } from "@/components/form/Field";
 import { Button } from "@/components/primitives/Button";
 import { ConfirmDialog } from "@/components/primitives/Dialog";
@@ -14,6 +13,7 @@ import { type AdminPiece, MAX_PHOTOS, MAX_UPLOAD_BYTES } from "@/lib/api/admin";
 import { type ArchiveImage, imageKinds } from "@/lib/api/catalog";
 import { isApiError } from "@/lib/api/errors";
 import { uploadPiecePhoto } from "@/lib/desk/photos";
+import { idleState } from "@/lib/form-state";
 
 const kindOptions = imageKinds.map((kind) => ({ value: kind, label: copy.labels.imageKind[kind] }));
 

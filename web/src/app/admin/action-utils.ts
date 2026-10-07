@@ -1,6 +1,6 @@
-import type { FormState } from "@/app/admin/form-state";
 import { copy } from "@/content/copy";
 import { isApiError } from "@/lib/api/errors";
+import type { FormState } from "@/lib/form-state";
 
 /*
   Shared by the desk's Server Actions. Kept out of the "use server" files so these helpers are

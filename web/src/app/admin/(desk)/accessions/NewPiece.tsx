@@ -3,12 +3,12 @@
 import { useActionState, useState } from "react";
 
 import { createPieceAction } from "@/app/admin/catalogue-actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote, useActionFocus } from "@/components/form/Field";
 import { Button } from "@/components/primitives/Button";
 import { Drawer } from "@/components/primitives/Drawer";
 import { copy } from "@/content/copy";
 import { categories } from "@/lib/api/catalog";
+import { idleState } from "@/lib/form-state";
 
 /** Opens a draft: one choice, then straight to the piece's own page. */
 export function NewPiece() {

@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { failure, stringValues } from "@/app/admin/action-utils";
-import type { FormState } from "@/app/admin/form-state";
 import { copy } from "@/content/copy";
 import {
   createAdmin,
@@ -19,6 +18,7 @@ import {
 import { ApiError, isApiError } from "@/lib/api/errors";
 import { adminRoleSchema } from "@/lib/api/types";
 import { visitorIpFrom } from "@/lib/client-ip";
+import type { FormState } from "@/lib/form-state";
 import { readSessionTokens, requireRole } from "@/lib/session";
 import { clearSessionCookies, writeSessionCookies } from "@/lib/session-cookies";
 

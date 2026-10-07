@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { idleState } from "@/app/admin/form-state";
 import { ApiError } from "@/lib/api/errors";
+import { idleState } from "@/lib/form-state";
 
 /*
   The drop drawers and the new-piece drawer only exist once JavaScript opens them, so these

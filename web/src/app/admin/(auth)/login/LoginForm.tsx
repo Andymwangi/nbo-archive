@@ -3,11 +3,11 @@
 import { useActionState, useState } from "react";
 
 import { requestLinkAction } from "@/app/admin/actions";
-import { idleState } from "@/app/admin/form-state";
 import { FormNote, TextField, useActionFocus } from "@/components/form/Field";
 import { IndexCard } from "@/components/layout/IndexCard";
 import { Button } from "@/components/primitives/Button";
 import { copy } from "@/content/copy";
+import { idleState } from "@/lib/form-state";
 
 export function LoginForm({ expired }: { expired: boolean }) {
   // Remounting the card is the cleanest way to reset the action state for a new address.
