@@ -42,10 +42,10 @@ export default async function LatestPage() {
   const cover = latest.cover;
   return (
     <div className="flex flex-col gap-16 md:gap-24">
-      <article className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
+      <article className="grid gap-8 lg:grid-cols-[minmax(0,min(50%,calc(70dvh*0.8)))_minmax(0,1fr)] lg:items-end lg:gap-12">
         <div className="flex flex-col gap-4 lg:order-2">
           <p className="meta text-ink-muted">{copy.home.eyebrow}</p>
-          <ArchiveNumber archiveNo={latest.archive_no} size="numeral" as="p" className="-ml-1" />
+          <ArchiveNumber archiveNo={latest.archive_no} size="display" as="p" className="-ml-0.5" />
           <h1 className="max-w-[18ch] font-display text-title">{latest.title}</h1>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-2 meta text-ink-muted">
             <span>{copy.labels.category[latest.category]}</span>
@@ -74,7 +74,7 @@ export default async function LatestPage() {
         </div>
         <Link
           href={`/item/${latest.archive_no}`}
-          className="relative block aspect-[4/5] overflow-hidden border-[1.5px] border-ink bg-paper-3 lg:order-1"
+          className="relative block aspect-[4/5] max-h-[70dvh] overflow-hidden border-[1.5px] border-ink bg-paper-3 max-lg:mx-auto max-lg:w-full max-lg:max-w-[calc(70dvh*0.8)] lg:order-1"
         >
           {cover ? (
             <Image
@@ -82,7 +82,7 @@ export default async function LatestPage() {
               alt={cover.alt_text || latest.title}
               fill
               priority
-              sizes="(min-width: 64rem) 58vw, 100vw"
+              sizes="(min-width: 64rem) 50vw, 100vw"
               placeholder={cover.placeholder ? "blur" : "empty"}
               blurDataURL={cover.placeholder || undefined}
               className="object-cover"

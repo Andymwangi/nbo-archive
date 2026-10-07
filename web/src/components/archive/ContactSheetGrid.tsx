@@ -10,26 +10,12 @@ import { formatKes, pad2 } from "@/lib/format";
 
 /*
   A photographer's contact sheet, not a product grid. Frames keep their order and their
-  numbers, prints differ in proportion and sit on a shared baseline, and the editor's grease
-  pencil is left on the sheet: new frames are circled, claimed frames are crossed through and
-  stamped. Nothing scales on hover; the sheet is read, not played with.
+  numbers, every print is the same 4:5 size in the same ink border so rows line up, and the
+  editor's grease pencil is left on the sheet: new frames are circled, claimed frames are
+  crossed through and stamped. Nothing scales on hover; the sheet is read, not played with.
 */
 
 const NEW_FOR_DAYS = 7;
-
-// Print proportions cycle by archive number so a frame always looks the same wherever it appears.
-const proportions = [
-  "aspect-[4/5]",
-  "aspect-square",
-  "aspect-[3/4]",
-  "aspect-[5/6]",
-  "aspect-[4/5]",
-];
-
-function proportion(archiveNo: string): string {
-  const digits = Number(archiveNo.replace(/\D/g, "")) || 0;
-  return proportions[digits % proportions.length]!;
-}
 
 function isNew(publishedAt: string | null, now: Date): boolean {
   if (!publishedAt) return false;
@@ -53,7 +39,7 @@ export function ContactSheetGrid({
   priorityCount = 0,
 }: ContactSheetGridProps) {
   return (
-    <ol className="grid grid-cols-2 items-end gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
+    <ol className="grid grid-cols-2 items-start gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
       {pieces.map((piece, index) => (
         <li key={piece.archive_no}>
           <Frame
@@ -100,11 +86,7 @@ function Frame({
         <ArchiveNumber archiveNo={piece.archive_no} />
       </span>
 
-      <span
-        className={`relative block overflow-hidden border-[1.5px] border-ink bg-paper-3 ${proportion(
-          piece.archive_no,
-        )}`}
-      >
+      <span className="relative block aspect-[4/5] overflow-hidden border-[1.5px] border-ink bg-paper-3">
         {cover ? (
           <Image
             src={cover.url}

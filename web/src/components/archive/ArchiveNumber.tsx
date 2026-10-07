@@ -3,14 +3,16 @@ import { splitArchiveNo } from "@/lib/archive-no";
 /*
   The archive number is the piece's name. The NBO- prefix is set faint so the digits carry the
   weight, the way an accession number is stencilled on a museum crate.
-    numeral -- the hero size on the home page and the item record
+    numeral -- the item record's wall-label size
+    display -- the latest piece on the home page
     title   -- headings and drop pages
     meta    -- frames, labels, anywhere it is a reference rather than a name
 */
-type Size = "numeral" | "title" | "meta";
+type Size = "numeral" | "display" | "title" | "meta";
 
 const sizes: Record<Size, string> = {
   numeral: "font-display text-numeral",
+  display: "font-display text-display",
   title: "font-display text-title",
   meta: "font-meta text-meta tracking-[0.04em]",
 };
