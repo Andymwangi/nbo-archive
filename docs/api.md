@@ -46,6 +46,7 @@ Bootstrap the first owner with `python manage.py create_owner --email ... --name
 | GET | `/catalog/accessions/` | Browse public pieces (paginated cards, newest first) |
 | GET | `/catalog/accessions/{archive_no}/` | One piece with photos, flaws, measurements and up to 4 pieces from the same era. Accepts `NBO-0142`, `0142` or `142` |
 | GET | `/catalog/facets/` | Values and counts for the filter drawer, plus `price_min` / `price_max` |
+| GET | `/catalog/pulse/` | The live strip: `next_drop` (soonest scheduled drop not yet open, or null), `on_rail` (pieces for sale), `on_hold` (pieces held right now) |
 | GET | `/catalog/drops/` | Scheduled and released drops, newest first |
 | GET | `/catalog/drops/{number}/` | One drop. Its pieces come from `/catalog/accessions/?drop={number}` |
 
@@ -137,3 +138,18 @@ Rules:
   that piece first, so a buyer never waits for the task.
 - The public piece record carries `hold.expires_at` while held: when the piece comes back. The
   admin piece carries `active_hold` (`expires_at`, `created_at`).
+
+## Drop alerts
+
+People can ask to hear when a drop opens, by WhatsApp (Kenyan mobile) or email. Every record keeps
+when consent was given and which wording (`consent_version`) was agreed to; leaving the list keeps
+the record with `unsubscribed_at` set, so consent history stays provable.
+
+| Method | Path | Who | Purpose |
+|---|---|---|---|
+| POST | `/alerts/drops/` | public | Join (`phone` and/or `email`, `consent: true`, optional `source`). Always 202; joining again renews consent and merges a phone and email into one record |
+| POST | `/alerts/drops/unsubscribe/` | public | Leave (`phone` or `email`). Always 202 |
+| GET | `/admin/drop-alerts/` | owner | Current subscribers; `include_unsubscribed=true` for everyone |
+
+Both public endpoints are rate limited per visitor address (`alerts`, 10 an hour). Nothing sends
+messages yet; sending drop alerts arrives with the operations module.

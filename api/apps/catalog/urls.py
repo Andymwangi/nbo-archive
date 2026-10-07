@@ -10,6 +10,7 @@ urlpatterns = [
         name="catalog-detail",
     ),
     path("catalog/facets/", views.FacetsView.as_view(), name="catalog-facets"),
+    path("catalog/pulse/", views.PulseView.as_view(), name="catalog-pulse"),
     path("catalog/drops/", views.PublicDropListView.as_view(), name="catalog-drops"),
     path(
         "catalog/drops/<int:number>/",

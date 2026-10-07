@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.catalog",
     "apps.inventory",
+    "apps.alerts",
 ]
 
 MIDDLEWARE = [
@@ -139,6 +140,7 @@ REST_FRAMEWORK = {
         "magic_link": "5/hour",
         "magic_link_verify": "20/hour",
         "hold": "30/min",
+        "alerts": "10/hour",
     },
 }
 

@@ -17,5 +17,6 @@ REST_FRAMEWORK = {
         "magic_link": "1000/min",
         "magic_link_verify": "1000/min",
         "hold": "1000/min",
+        "alerts": "1000/min",
     },
 }

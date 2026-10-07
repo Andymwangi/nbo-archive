@@ -2,6 +2,7 @@ from django.db.models import Count, Max, Min, Q
 from django.db.models.functions import Lower
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -16,6 +17,7 @@ from apps.catalog.models import (
     AccessionImage,
     AccessionStatus,
     Drop,
+    DropStatus,
     Flaw,
 )
 from apps.catalog.serializers import (
@@ -35,6 +37,7 @@ from apps.catalog.serializers import (
     PublicAccessionCardSerializer,
     PublicAccessionDetailSerializer,
     PublicDropSerializer,
+    PulseSerializer,
     ScheduleSerializer,
 )
 from apps.catalog.specs import parse_archive_no
@@ -212,6 +215,40 @@ class PublicDropListView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+
+class PulseView(APIView):
+    authentication_classes: list = []
+    permission_classes: list = []
+
+    @extend_schema(
+        tags=[CATALOG_TAG],
+        summary="Live strip: next drop and how busy the rail is",
+        description=(
+            "`next_drop` is the soonest scheduled drop that has not opened yet, or null. "
+            "`on_rail` counts public pieces for sale (including due scheduled ones); `on_hold` "
+            "counts pieces held right now."
+        ),
+        responses={200: PulseSerializer},
+        auth=[],
+    )
+    def get(self, request):
+        now = timezone.now()
+        next_drop = (
+            _public_drop_queryset()
+            .filter(status=DropStatus.SCHEDULED, release_at__gt=now)
+            .order_by("release_at")
+            .first()
+        )
+        public = services.public_accessions(now)
+        payload = {
+            "next_drop": next_drop,
+            "on_rail": public.exclude(
+                status__in=[AccessionStatus.HELD, AccessionStatus.CLAIMED]
+            ).count(),
+            "on_hold": public.filter(status=AccessionStatus.HELD).count(),
+        }
+        return Response(PulseSerializer(payload, context={"request": request}).data)
 
 
 class PublicDropDetailView(APIView):

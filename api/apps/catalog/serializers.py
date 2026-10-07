@@ -203,6 +203,14 @@ class PublicDropSerializer(serializers.ModelSerializer):
         return getattr(drop, "piece_count", 0)
 
 
+class PulseSerializer(serializers.Serializer):
+    """The storefront's live strip: what is coming and how busy the rail is right now."""
+
+    next_drop = PublicDropSerializer(allow_null=True)
+    on_rail = serializers.IntegerField(help_text="Public pieces for sale right now.")
+    on_hold = serializers.IntegerField(help_text="Pieces held by a visitor right now.")
+
+
 class FacetCountSerializer(serializers.Serializer):
     value = serializers.CharField()
     count = serializers.IntegerField()
