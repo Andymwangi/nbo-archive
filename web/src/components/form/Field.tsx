@@ -54,6 +54,99 @@ export function TextField({
   );
 }
 
+function FieldFrame({
+  id,
+  label,
+  hint,
+  error,
+  children,
+}: BaseProps & { id: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="meta text-ink-muted">
+        {label}
+      </label>
+      {children}
+      {error ? (
+        <p id={`${id}-error`} className="text-meta text-signal">
+          <span aria-hidden className="font-meta">
+            !{" "}
+          </span>
+          {error}
+        </p>
+      ) : hint ? (
+        <p id={`${id}-hint`} className="text-meta text-ink-muted">
+          {hint}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function describedBy(id: string, error?: string, hint?: string) {
+  return error ? `${id}-error` : hint ? `${id}-hint` : undefined;
+}
+
+/** Several lines of text on the same inked baseline. */
+export function TextAreaField({
+  label,
+  hint,
+  error,
+  className = "",
+  rows = 3,
+  ...props
+}: BaseProps & ComponentPropsWithoutRef<"textarea">) {
+  const id = useId();
+  return (
+    <FieldFrame id={id} label={label} hint={hint} error={error}>
+      <textarea
+        id={id}
+        rows={rows}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy(id, error, hint)}
+        className={`${control} resize-y ${className}`}
+        {...props}
+      />
+    </FieldFrame>
+  );
+}
+
+export type SelectOption = { value: string; label: string };
+
+/** A native select, so phones get their own picker. An empty first option means "not set". */
+export function SelectField({
+  label,
+  hint,
+  error,
+  options,
+  placeholder,
+  className = "",
+  ...props
+}: BaseProps & {
+  options: readonly SelectOption[];
+  placeholder?: string;
+} & ComponentPropsWithoutRef<"select">) {
+  const id = useId();
+  return (
+    <FieldFrame id={id} label={label} hint={hint} error={error}>
+      <select
+        id={id}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy(id, error, hint)}
+        className={`${control} ${className}`}
+        {...props}
+      >
+        {placeholder !== undefined ? <option value="">{placeholder}</option> : null}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </FieldFrame>
+  );
+}
+
 /**
  * A form-level message: success notes in tag green, failures in signal. It can take focus so
  * the result of an action is announced and keyboard users land on it.

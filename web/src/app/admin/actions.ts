@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { failure, stringValues } from "@/app/admin/action-utils";
 import type { FormState } from "@/app/admin/form-state";
 import { copy } from "@/content/copy";
 import {
@@ -25,41 +26,6 @@ async function visitorIp(): Promise<string | undefined> {
   return visitorIpFrom(await headers());
 }
 
-/** Turn an API failure into something a person can act on; never echo transport internals. */
-function failure(
-  error: unknown,
-  fieldNames: readonly string[] = [],
-  values?: Record<string, string>,
-): FormState {
-  if (!isApiError(error)) throw error;
-  const base = { status: "error" as const, values };
-  if (error.code === "network_error") return { ...base, message: copy.errors.network };
-  if (error.code === "throttled") return { ...base, message: copy.errors.throttled };
-  if (error.status === 401) return { ...base, message: copy.errors.sessionEnded };
-  if (error.status === 404) return { ...base, message: copy.staff.gone };
-  if (error.status >= 500 || error.code === "bad_response") {
-    return { ...base, message: copy.errors.unexpected };
-  }
-
-  const fields: Record<string, string> = {};
-  for (const name of fieldNames) {
-    const message = error.fieldMessage(name);
-    if (message) fields[name] = message;
-  }
-  const unclaimed = Object.keys(error.fields).some((name) => !fieldNames.includes(name));
-  const message = Object.keys(fields).length && !unclaimed ? undefined : error.message;
-  return { ...base, message, fields };
-}
-
-function stringValues(formData: FormData, names: readonly string[]): Record<string, string> {
-  const values: Record<string, string> = {};
-  for (const name of names) {
-    const value = formData.get(name);
-    if (typeof value === "string") values[name] = value;
-  }
-  return values;
-}
-
 const emailSchema = z.string().trim().toLowerCase().email().max(254);
 
 export async function requestLinkAction(_: FormState, formData: FormData): Promise<FormState> {
@@ -71,7 +37,7 @@ export async function requestLinkAction(_: FormState, formData: FormData): Promi
   try {
     await requestMagicLink(parsed.data, await visitorIp());
   } catch (error) {
-    return failure(error, ["email"], values);
+    return failure(error, { fieldNames: ["email"], values });
   }
   return { status: "ok", email: parsed.data };
 }
@@ -151,7 +117,7 @@ export async function createStaffAction(_: FormState, formData: FormData): Promi
     revalidatePath("/admin/staff");
     return { status: "ok", message: copy.staff.created(created.email) };
   } catch (error) {
-    return failure(error, STAFF_FIELDS, values);
+    return failure(error, { fieldNames: STAFF_FIELDS, values, notFound: copy.staff.gone });
   }
 }
 
@@ -172,7 +138,7 @@ export async function updateStaffAction(_: FormState, formData: FormData): Promi
   try {
     await updateAdmin(access, input.id, changes);
   } catch (error) {
-    return failure(error);
+    return failure(error, { notFound: copy.staff.gone });
   }
   revalidatePath("/admin/staff");
   return { status: "ok", message: input.intent === "role" ? copy.staff.saved : undefined };
