@@ -13,6 +13,8 @@ __pycache__/
 .coverage
 htmlcov/
 api/media/
+api/seed/media/*
+!api/seed/media/.gitkeep
 api/staticfiles/
 
 # node
