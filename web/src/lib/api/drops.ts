@@ -64,3 +64,15 @@ export async function nextDrop(now: Date = new Date()): Promise<Drop | null> {
     .sort((a, b) => Date.parse(a.release_at!) - Date.parse(b.release_at!));
   return upcoming[0] ?? null;
 }
+
+export const pulseSchema = z.object({
+  next_drop: dropSchema.nullable(),
+  on_rail: z.number().int(),
+  on_hold: z.number().int(),
+});
+export type Pulse = z.infer<typeof pulseSchema>;
+
+/** The live strip: the next drop and how busy the rail is. Cached for a minute like the rest. */
+export function getPulse(): Promise<Pulse> {
+  return apiRequest("/catalog/pulse/", { schema: pulseSchema, ...cache });
+}

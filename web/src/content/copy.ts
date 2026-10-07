@@ -116,11 +116,78 @@ export const copy = {
     jumpSubmit: "Go",
   },
 
-  colophon: {
-    statement:
-      "Thrifted polos, jackets, sweaters, hoodies and tees. Every piece numbered, measured flat, cleaned and inspected before it is filed. Catalogued in Nairobi.",
-    set: "Set in Bricolage Grotesque, Instrument Sans and DM Mono.",
+  shell: {
+    skip: "Skip to the archive",
+    strip: {
+      label: "Live from the archive",
+      nextDrop: (number: string, when: string) => `Accession ${number} opens ${when}`,
+      pieces: (n: number) => (n === 1 ? "1 piece" : `${n} pieces`),
+      onRail: (n: number) => `${n} on the rail`,
+      onHold: (n: number) => `${n} on hold now`,
+      service: "Pay by M-Pesa / Delivery within Kenya",
+    },
+    categories: "Shop by category",
+    menuTitle: "The archive",
+    findTitle: "Find a piece by number",
+    findLede: "Type the number from the post or the label: 142, 0142 or NBO-0142.",
+    tabs: { shop: "Shop", find: "Find", holds: "Holds", drops: "Drops", menu: "Menu" },
+  },
+
+  footer: {
+    listTitle: "Get the drop list",
+    listLede:
+      "A WhatsApp message or an email the moment a new accession opens. Nothing else, and you can leave whenever you like.",
+    phoneLabel: "WhatsApp number",
+    phoneHint: "Kenyan mobile, e.g. 0712 345 678",
+    emailLabel: "Email",
+    either: "One of the two is enough.",
+    consent: "Message me when drops open. I can leave the list at any time.",
+    join: "Add me to the list",
+    joining: "Adding",
+    joined: "You are on the drop list. We will message you when the next accession opens.",
+    needContact: "Add a WhatsApp number or an email.",
+    needConsent: "Tick the box so we are allowed to message you.",
+    groups: { shop: "Shop", help: "Help", archive: "The archive", legal: "Legal" },
+    links: {
+      latest: "Latest",
+      archive: "The whole archive",
+      drops: "Accessions",
+      holds: "Your holds",
+      howHolds: "How holds work",
+      sizing: "Size and condition guide",
+      shipping: "Shipping and delivery",
+      returns: "Returns and exchanges",
+      about: "About",
+      contact: "Contact",
+      privacy: "Privacy",
+      terms: "Terms",
+    },
+    visit: "Find us",
+    pay: "Payments",
+    payMpesa: "M-Pesa",
+    delivery: "Delivery within Kenya",
+    nairobiTime: "Nairobi",
+    rights: (year: number) => `${year} nboarchive`,
     staff: "Staff",
+  },
+
+  pages: {
+    draftLabel: "Draft",
+    contactTitle: "Contact",
+    contactLede: "Questions about a piece, a hold or a delivery: this is how to reach the archive.",
+    contactPending:
+      "Contact details are being set up. Until they are listed here, the quickest way to reach us is a direct message on Instagram.",
+    contactNothing: "Contact details are being set up and will be listed here shortly.",
+    whatsapp: "WhatsApp",
+    email: "Email",
+    instagram: "Instagram",
+    city: "Where",
+    hours: "Hours",
+    leaveTitle: "Leave the drop list",
+    leaveLede: "Enter the WhatsApp number or email you signed up with.",
+    leave: "Take me off the list",
+    leaving: "Removing",
+    left: "Done. You will not get drop alerts any more.",
   },
 
   labels: {
@@ -192,9 +259,15 @@ export const copy = {
 
   home: {
     eyebrow: "Latest accession",
-    filed: (date: string) => `Filed ${date}`,
-    open: "Open the record",
-    recentTitle: "Filed before it",
+    railTitle: "Newest on the rail",
+    railLede: (n: number) =>
+      n === 1 ? "1 piece on the rail right now." : `${n} pieces on the rail right now.`,
+    railPrevious: "Earlier pieces",
+    railNext: "More pieces",
+    dropEyebrow: "Next accession",
+    joinList: "Get the drop list",
+    categoriesTitle: "Shop by category",
+    categoryCount: (n: number) => (n === 1 ? "1 piece" : `${n} pieces`),
     browse: "The whole archive",
     emptyTitle: "Nothing filed yet.",
     emptyBody: "The first pieces are being measured and photographed. Check back soon.",
@@ -220,6 +293,8 @@ export const copy = {
     priceMin: "From",
     priceMax: "To",
     showClaimed: "Show claimed pieces too",
+    availability: "Where it stands",
+    availabilityOptions: { on_rail: "On the rail", on_hold: "On hold", claimed: "Claimed" },
     apply: "Show pieces",
     clear: "Clear all",
     remove: (label: string) => `Remove filter: ${label}`,
@@ -307,6 +382,10 @@ export const copy = {
     releasing: "Letting go",
     released: "Let go. It is back on the rail.",
     seeHolds: "Your holds",
+    payDelivery: "Pay by M-Pesa / Delivery within Kenya",
+    howDelivery: "How delivery works",
+    howHolds: "How holds work",
+    moreTitle: "More from the rail",
     backIn: (minutes: number) =>
       minutes <= 1
         ? "Someone is paying for this right now. If they let it go, it comes back within a minute."

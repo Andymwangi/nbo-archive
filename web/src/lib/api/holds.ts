@@ -18,6 +18,8 @@ export const holdSchema = z.object({
 export type Hold = z.infer<typeof holdSchema>;
 
 export const MAX_ACTIVE_HOLDS = 3;
+/** Must match the API's HOLD_DURATION_MINUTES (and MAX_ACTIVE_HOLDS in apps/inventory). */
+export const HOLD_MINUTES = 15;
 
 /** Reading holds happens on every storefront render for visitors with a cookie, so it goes on
  *  the web server's own account rather than counting against the visitor's address. */

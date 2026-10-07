@@ -13,6 +13,7 @@ import closeSquare from "@iconify-icons/solar/close-square-linear";
 import eye from "@iconify-icons/solar/eye-linear";
 import letter from "@iconify-icons/solar/letter-linear";
 import logout from "@iconify-icons/solar/logout-2-linear";
+import hamburgerMenu from "@iconify-icons/solar/hamburger-menu-linear";
 import magnifer from "@iconify-icons/solar/magnifer-linear";
 import moon from "@iconify-icons/solar/moon-linear";
 import pen from "@iconify-icons/solar/pen-linear";
@@ -22,6 +23,7 @@ import trash from "@iconify-icons/solar/trash-bin-trash-linear";
 import tuning from "@iconify-icons/solar/tuning-2-linear";
 import upload from "@iconify-icons/solar/upload-linear";
 import userPlus from "@iconify-icons/solar/user-plus-linear";
+import widget from "@iconify-icons/solar/widget-4-linear";
 
 /*
   Utility glyphs only. Garment motifs (stamps, labels, hang-tags) are drawn as custom SVG.
@@ -41,8 +43,10 @@ const icons = {
   edit: pen,
   eye,
   filter: tuning,
+  grid: widget,
   letter,
   logout,
+  menu: hamburgerMenu,
   moon,
   plus: addSquare,
   refresh,

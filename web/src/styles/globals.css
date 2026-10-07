@@ -42,6 +42,39 @@
   color-scheme: dark;
 }
 
+/*
+  An inverted surface for the live strip and the footer: an ink block in the light theme, a pale
+  block in the dark theme. It redefines the colour tokens rather than restyling components, so
+  every field, button and tag inside it flips by itself. Every pairing is checked for WCAG AA.
+*/
+.surface-ink {
+  --paper: #1c1a16;
+  --paper-2: #26231e;
+  --paper-3: #34302a;
+  --ink: #eee8dc;
+  --ink-muted: #b9b1a1;
+  --ink-faint: #9b9384;
+  --rule: #eee8dc;
+  --signal: #f0603a;
+  --signal-ink: #1c1a16;
+  --tag: #7fb08f;
+  background-color: var(--paper);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .surface-ink {
+  --paper: #ece5d6;
+  --paper-2: #e6dfd0;
+  --paper-3: #d6ccb6;
+  --ink: #17150f;
+  --ink-muted: #5e584d;
+  --ink-faint: #686152;
+  --rule: #17150f;
+  --signal: #b33318;
+  --signal-ink: #fbf4ea;
+  --tag: #2e5b3f;
+}
+
 @theme {
   --color-*: initial;
   --radius-*: initial;
