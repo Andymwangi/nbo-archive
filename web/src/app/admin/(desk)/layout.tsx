@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { signOutAction } from "@/app/admin/actions";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/primitives/Button";
 import { Tag } from "@/components/primitives/Tag";
 import { copy } from "@/content/copy";
 import { currentAdmin } from "@/lib/session";
+import { readTheme } from "@/lib/theme-server";
 
 export const metadata: Metadata = {
   title: { default: copy.brand.backRoom, template: `%s / ${copy.brand.backRoom}` },
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DeskLayout({ children }: { children: React.ReactNode }) {
-  const { user } = await currentAdmin();
+  const [{ user }, theme] = await Promise.all([currentAdmin(), readTheme()]);
   const rooms = [
     { href: "/admin", label: "Desk" },
     { href: "/admin/accessions", label: copy.desk.accessionsRoom },
@@ -33,6 +35,7 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
               {user.name || user.email}
             </span>
             <Tag tone={user.role === "owner" ? "signal" : "ink"}>{user.role}</Tag>
+            <ThemeToggle initial={theme} />
             <form action={signOutAction}>
               <Button type="submit" variant="quiet" icon="logout" className="min-h-11">
                 {copy.desk.signOut}

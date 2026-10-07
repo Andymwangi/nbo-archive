@@ -14,8 +14,10 @@ import eye from "@iconify-icons/solar/eye-linear";
 import letter from "@iconify-icons/solar/letter-linear";
 import logout from "@iconify-icons/solar/logout-2-linear";
 import magnifer from "@iconify-icons/solar/magnifer-linear";
+import moon from "@iconify-icons/solar/moon-linear";
 import pen from "@iconify-icons/solar/pen-linear";
 import refresh from "@iconify-icons/solar/refresh-linear";
+import sun from "@iconify-icons/solar/sun-2-linear";
 import trash from "@iconify-icons/solar/trash-bin-trash-linear";
 import tuning from "@iconify-icons/solar/tuning-2-linear";
 import upload from "@iconify-icons/solar/upload-linear";
@@ -41,9 +43,11 @@ const icons = {
   filter: tuning,
   letter,
   logout,
+  moon,
   plus: addSquare,
   refresh,
   search: magnifer,
+  sun,
   trash,
   upload,
   "user-plus": userPlus,

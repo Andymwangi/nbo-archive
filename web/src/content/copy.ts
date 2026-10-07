@@ -101,6 +101,11 @@ export const copy = {
     next: "Next page",
   },
 
+  theme: {
+    toDark: "Switch to the dark theme",
+    toLight: "Switch to the light theme",
+  },
+
   nav: {
     label: "Index",
     latest: "Latest",

@@ -22,22 +22,24 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* A warm archive drawer at night, not a black screen. */
-    --paper: #17150f;
-    --paper-2: #211e17;
-    --paper-3: #2c281f;
-    --ink: #ece5d6;
-    --ink-muted: #a69e8e;
-    --ink-faint: #958d7c;
-    --rule: #ece5d6;
-    --signal: #f0603a;
-    --signal-ink: #17150f;
-    --tag: #7fb08f;
-    --grain-opacity: 0.05;
-    color-scheme: dark;
-  }
+/*
+  Light is the default whatever the device prefers; dark is chosen with the switch in the header
+  and remembered in the nbo_theme cookie, which the root layout turns into data-theme.
+*/
+:root[data-theme="dark"] {
+  /* A warm archive drawer at night, not a black screen. */
+  --paper: #17150f;
+  --paper-2: #211e17;
+  --paper-3: #2c281f;
+  --ink: #ece5d6;
+  --ink-muted: #a69e8e;
+  --ink-faint: #958d7c;
+  --rule: #ece5d6;
+  --signal: #f0603a;
+  --signal-ink: #17150f;
+  --tag: #7fb08f;
+  --grain-opacity: 0.05;
+  color-scheme: dark;
 }
 
 @theme {
