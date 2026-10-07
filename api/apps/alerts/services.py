@@ -5,11 +5,13 @@ from django.utils import timezone
 from apps.alerts.models import CONSENT_VERSION, DropAlertSubscriber
 
 
-def subscribe(*, phone: str = "", email: str = "", source: str = "") -> DropAlertSubscriber:
+def subscribe(*, phone: str = "", email: str = "", source: str = "") -> list[DropAlertSubscriber]:
     """Add someone to the drop list, or renew their consent if they are already on it.
 
-    A person may sign up with a phone, an email, or both; an existing record matching either is
-    updated so one person never ends up as two rows."""
+    A person may sign up with a phone, an email, or both. When exactly one existing record
+    matches, the new detail is added to it so one person stays one row. When the phone and the
+    email already belong to two different records, both are renewed and nothing is merged:
+    rewriting one onto the other would collide with the other record."""
     email = email.strip().lower()
     match = Q()
     if phone:
@@ -20,22 +22,26 @@ def subscribe(*, phone: str = "", email: str = "", source: str = "") -> DropAler
     for _ in range(2):
         try:
             with transaction.atomic():
-                existing = DropAlertSubscriber.objects.select_for_update().filter(match).first()
+                existing = list(DropAlertSubscriber.objects.select_for_update().filter(match))
                 now = timezone.now()
-                if existing is None:
-                    return DropAlertSubscriber.objects.create(
-                        phone=phone,
-                        email=email,
-                        consented_at=now,
-                        consent_version=CONSENT_VERSION,
-                        source=source[:40],
-                    )
-                existing.phone = existing.phone or phone
-                existing.email = existing.email or email
-                existing.consented_at = now
-                existing.consent_version = CONSENT_VERSION
-                existing.unsubscribed_at = None
-                existing.save()
+                if not existing:
+                    return [
+                        DropAlertSubscriber.objects.create(
+                            phone=phone,
+                            email=email,
+                            consented_at=now,
+                            consent_version=CONSENT_VERSION,
+                            source=source[:40],
+                        )
+                    ]
+                for record in existing:
+                    if len(existing) == 1:
+                        record.phone = record.phone or phone
+                        record.email = record.email or email
+                    record.consented_at = now
+                    record.consent_version = CONSENT_VERSION
+                    record.unsubscribed_at = None
+                    record.save()
                 return existing
         except IntegrityError:
             # A simultaneous sign-up with the same details won the insert; retry as an update.

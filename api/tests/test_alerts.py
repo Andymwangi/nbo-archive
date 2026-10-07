@@ -73,6 +73,21 @@ class TestSubscribe:
         assert subscriber.consented_at > old
         assert subscriber.email == "w@example.com"
 
+    def test_phone_and_email_on_two_records_renews_both_without_merging(self):
+        _join(phone="0712345678")
+        _join(email="w@example.com")
+        DropAlertSubscriber.objects.update(consent_version="old")
+
+        response = _join(phone="0712345678", email="w@example.com")
+
+        assert response.status_code == 202
+        rows = DropAlertSubscriber.objects.order_by("pk")
+        assert [(row.phone, row.email) for row in rows] == [
+            ("+254712345678", ""),
+            ("", "w@example.com"),
+        ]
+        assert {row.consent_version for row in rows} == {CONSENT_VERSION}
+
     def test_email_match_is_case_insensitive(self):
         _join(email="w@example.com")
         _join(email="W@EXAMPLE.COM", phone="0712345678")

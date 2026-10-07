@@ -6,6 +6,7 @@ from apps.common.models import TimeStampedModel
 
 # Bump when the consent wording on the sign-up form changes, so each record shows exactly what
 # the person agreed to (Kenya Data Protection Act 2019: consent must be specific and provable).
+# The wording lives in web/src/content/copy.ts (footer.consent); change both together.
 CONSENT_VERSION = "2026-10-07"
 
 
