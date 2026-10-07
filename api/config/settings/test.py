@@ -8,11 +8,14 @@ CELERY_TASK_ALWAYS_EAGER = True
 # Tests must not depend on a developer's .env; individual tests set these when they need them.
 MEDIA_BASE_URL = ""
 INTERNAL_API_TOKEN = ""
+HOLDS_ENABLED = True
+HOLD_DURATION_MINUTES = 15
 REST_FRAMEWORK = {
     **REST_FRAMEWORK,  # noqa: F405
     "DEFAULT_THROTTLE_RATES": {
         **REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],  # noqa: F405
         "magic_link": "1000/min",
         "magic_link_verify": "1000/min",
+        "hold": "1000/min",
     },
 }

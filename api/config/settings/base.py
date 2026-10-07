@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.common",
     "apps.accounts",
     "apps.catalog",
+    "apps.inventory",
 ]
 
 MIDDLEWARE = [
@@ -137,6 +138,7 @@ REST_FRAMEWORK = {
         "user": "600/min",
         "magic_link": "5/hour",
         "magic_link_verify": "20/hour",
+        "hold": "30/min",
     },
 }
 
@@ -190,6 +192,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.catalog.tasks.release_due_pieces",
         "schedule": crontab(),
     },
+    "expire-holds": {
+        "task": "apps.inventory.tasks.expire_holds",
+        "schedule": crontab(),
+    },
 }
 
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
@@ -203,6 +209,8 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 WEB_BASE_URL = env("WEB_BASE_URL").rstrip("/")
 MAGIC_LINK_TTL_MINUTES = env.int("MAGIC_LINK_TTL_MINUTES", default=15)
 HOLD_DURATION_MINUTES = env.int("HOLD_DURATION_MINUTES", default=15)
+# Off until checkout and payment exist, so production pieces cannot be held with no way to buy.
+HOLDS_ENABLED = env.bool("HOLDS_ENABLED", default=False)
 
 LOGGING = {
     "version": 1,

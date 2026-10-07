@@ -103,3 +103,35 @@ times directly, so a release never waits on it.
 
 Placeholder data: put the photos named in `api/seed/media/` (see `api/seed/accessions.py`) and run
 `python manage.py seed_archive`; remove them with `python manage.py purge_placeholders`.
+
+## Holds
+
+A hold reserves one piece for one visitor for 15 minutes (`HOLD_DURATION_MINUTES`). Holds are
+switched off unless `HOLDS_ENABLED=true`; while off, every holds endpoint returns 404
+`holds_closed`. Keep it off in production until checkout and payment exist.
+
+Visitors have no accounts. The web server sends the visitor's random key in `X-Visitor-Token`
+(32 to 128 URL-safe characters); the API stores only its SHA-256.
+
+| Method | Path | Who | Purpose |
+|---|---|---|---|
+| GET | `/holds/` | visitor | The visitor's active holds, soonest to expire first, each with its piece card |
+| POST | `/holds/` | visitor | Hold a piece (`archive_no`). 201 new, 200 when this visitor already holds it |
+| DELETE | `/holds/{id}/` | visitor | Let go early. 204, also when the hold has already ended |
+| POST | `/admin/accessions/{id}/release-hold/` | owner, editor | Clear a stuck hold; returns the admin piece |
+
+Conflict codes on `POST /holds/`: `piece_held` (someone else holds it), `not_for_sale` (claimed),
+`hold_limit` (the visitor already has 3 active holds). Pieces that are not public return 404.
+Placing a hold is rate limited per visitor address (`hold`, 30 a minute); reading holds is not.
+
+Rules:
+
+- The piece moves to `held` in the same transaction that creates the hold, and back to `live`
+  when the hold is released or expires. While held, catalogue writes return 409.
+- A `scheduled` piece whose release time has passed can be held; holding it releases it.
+- The database allows one active hold per piece (partial unique constraint), and placement locks
+  the piece row and the visitor, so neither a double hold nor a fourth hold can be raced in.
+- A beat task expires lapsed holds every minute. Placing a hold also expires a lapsed hold on
+  that piece first, so a buyer never waits for the task.
+- The public piece record carries `hold.expires_at` while held: when the piece comes back. The
+  admin piece carries `active_hold` (`expires_at`, `created_at`).

@@ -109,6 +109,14 @@ class PublicAccessionCardSerializer(CoverMixin, PublicStatusMixin, serializers.M
         read_only_fields = fields
 
 
+def _active_hold_summary(accession: Accession, fields: tuple[str, ...]):
+    """The piece's active hold, read through the reverse relation so the catalogue does not
+    import the inventory app."""
+    if accession.status != AccessionStatus.HELD:
+        return None
+    return accession.holds.filter(status="active").values(*fields).first()
+
+
 class PublicAccessionSerializer(PublicStatusMixin, serializers.ModelSerializer):
     archive_no = serializers.CharField(read_only=True)
     status = serializers.SerializerMethodField()
@@ -116,6 +124,7 @@ class PublicAccessionSerializer(PublicStatusMixin, serializers.ModelSerializer):
     flaws = FlawSerializer(many=True, read_only=True)
     drop = DropSummarySerializer(read_only=True, allow_null=True)
     claimed = serializers.SerializerMethodField()
+    hold = serializers.SerializerMethodField()
 
     class Meta:
         model = Accession
@@ -143,6 +152,7 @@ class PublicAccessionSerializer(PublicStatusMixin, serializers.ModelSerializer):
             "images",
             "flaws",
             "claimed",
+            "hold",
         ]
         read_only_fields = fields
 
@@ -153,6 +163,15 @@ class PublicAccessionSerializer(PublicStatusMixin, serializers.ModelSerializer):
         if accession.status != AccessionStatus.CLAIMED:
             return None
         return {"city": accession.claimed_city, "claimed_at": accession.claimed_at}
+
+    @extend_schema_field(
+        serializers.DictField(
+            allow_null=True,
+            help_text="{'expires_at': datetime} while the piece is held: when it comes back.",
+        )
+    )
+    def get_hold(self, accession: Accession):
+        return _active_hold_summary(accession, fields=("expires_at",))
 
 
 class PublicAccessionDetailSerializer(PublicAccessionSerializer):
@@ -240,6 +259,7 @@ class AdminAccessionSerializer(serializers.ModelSerializer):
     flaws = FlawSerializer(many=True, read_only=True)
     created_by = serializers.EmailField(source="created_by.email", allow_null=True, read_only=True)
     problems = serializers.SerializerMethodField()
+    active_hold = serializers.SerializerMethodField()
 
     class Meta:
         model = Accession
@@ -274,6 +294,7 @@ class AdminAccessionSerializer(serializers.ModelSerializer):
             "flaws",
             "created_by",
             "problems",
+            "active_hold",
             "created_at",
             "updated_at",
         ]
@@ -287,6 +308,14 @@ class AdminAccessionSerializer(serializers.ModelSerializer):
     )
     def get_problems(self, accession: Accession):
         return publication_problems(accession)
+
+    @extend_schema_field(
+        serializers.DictField(
+            allow_null=True, help_text="{'expires_at': datetime, 'created_at': datetime}"
+        )
+    )
+    def get_active_hold(self, accession: Accession):
+        return _active_hold_summary(accession, fields=("expires_at", "created_at"))
 
 
 def _validate_measurements(value) -> dict:
