@@ -8,7 +8,7 @@ Updated: 2026-10-06
 |---|---|---|---|---|
 | 1 | Bootstrap (settings, Swagger, Celery, error envelope, health) | Done | -- | |
 | 2 | Auth (magic link, JWT, admin users, roles) | Done | Done | Login, verify, desk, staff room. Awaiting owner visual check |
-| 3 | Catalog (accessions, drops, images, filters) | Pending | Pending | |
+| 3 | Catalog (accessions, drops, images, filters) | Done | Pending | 3a backend done; 3b storefront and 3c admin desk next |
 | 4 | Inventory holds | Pending | Pending | |
 | 5 | Orders + shipping zones | Pending | Pending | |
 | 6 | Payments (mock, then Daraja) | Pending | Pending | |
@@ -49,3 +49,15 @@ Until `/` exists, the 404 page's "Back to the archive" link lands on the same 40
 - `/admin/session-expired` clears cookies on GET (it is the redirect target for Server Components,
   which cannot clear cookies). A cross-site link can therefore sign a staff member out; it cannot
   sign anyone in.
+- Chest-band edges for the size filter are provisional (XS <48, S 48-51, M 52-55, L 56-59,
+  XL 60-63, XXL 64+ cm pit to pit) until the owner confirms them.
+- Uploaded photos live on the local filesystem (`MEDIA_STORAGE=local` is the only supported
+  value). `prod.py` serves no `/media/`, so production needs the reverse proxy to serve the media
+  volume, or a Cloudinary/S3 backend added (new package plus a settings branch).
+- HEIC photos from iPhones are rejected; the camera must save JPEG ("Most Compatible").
+- A scheduled piece is public from its release time even before the beat task flips it to
+  `live`. The holds module must treat `scheduled` with a past `release_at` as holdable.
+- The admin audit log is deferred to module 7; catalogue writes are not yet audited.
+- The Django admin (`/django-admin/`) shows catalogue records read-only. Every catalogue write goes
+  through the API so photo metadata stripping and the publishing rules always apply.
+- `api/Dockerfile` uses Python 3.14 while the project targets 3.12.
