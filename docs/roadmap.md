@@ -38,40 +38,12 @@ visual check. One module at a time.
 The 3c commits are pushed, `agentRules: false` stops `next dev` writing agent files,
 `.gitattributes` fixes line endings, and the API image runs Python 3.12.
 
-### Module 4: Holds (in progress)
+### Module 4: Holds (done 2026-10-07)
 
-Decisions: anonymous visitor cookie, at most 3 active holds per visitor, fixed 15 minutes, held
-pieces show other visitors when they return, hold button behind a flag (on in dev, off in
-production until checkout exists), owner and editor can release a stuck hold.
-
-The "place on hold" replacement for add-to-cart. A visitor reserves a one-of-one piece for 15
-minutes with an honest countdown; no piece can ever be held or sold twice.
-
-API (`apps/inventory`):
-
-- `Hold` model: piece, visitor key (hashed), status (`active`, `converted`, `released`, `expired`),
-  `expires_at`, timestamps. A partial unique constraint allows one active hold per piece, so the
-  database refuses a double hold even if application code is wrong.
-- Hold service: lock the piece row, accept `live` or `scheduled` with a past release time, set the
-  piece to `held` in the same transaction. Repeat requests from the same visitor return the
-  existing hold. Release and expiry return the piece to `live`.
-- Expiry: a beat task every minute, plus lazy expiry when a piece is requested, so a lapsed hold
-  never blocks a buyer while waiting for the task.
-- Endpoints: place a hold, list the visitor's holds, release a hold, and a staff release for a stuck
-  hold. Scoped rate limit per visitor.
-- Public piece detail gains the hold's expiry for held pieces (the honest "back in 12 minutes").
-- Tests: 50 threads racing for one piece (exactly one hold), expiry, release, the scheduled-piece
-  rule, idempotent repeats, the per-visitor cap.
-
-Web:
-
-- A random httpOnly visitor cookie, sent to the API only as a header and stored there hashed.
-- Item page: "Place on hold" on live pieces; on a piece this visitor holds, the countdown, a release
-  button and the path to checkout; on someone else's hold, when it comes back.
-- `HoldTimer` (server-provided expiry, `role="timer"`, refreshes at zero, reduced-motion safe).
-- `/hold`: the visitor's held pieces with timers. Module 5 turns this into checkout.
-- A hold indicator in the index navigation.
-- Hold and release expire the `catalog` cache tag so the archive shows "On hold" at once.
+A visitor reserves a one-of-one piece for 15 minutes with an honest countdown. One active hold per
+piece is enforced by the database and by row locks; a visitor can hold at most 3 pieces. Holds are
+switched off in production (`HOLDS_ENABLED`) until checkout exists. See `docs/api.md` (Holds) and
+the limitations in `docs/status.md`.
 
 ### Module 5: Orders and delivery
 

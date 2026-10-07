@@ -9,7 +9,7 @@ Updated: 2026-10-07
 | 1 | Bootstrap (settings, Swagger, Celery, error envelope, health) | Done | -- | |
 | 2 | Auth (magic link, JWT, admin users, roles) | Done | Done | Login, verify, desk, staff room. Awaiting owner visual check |
 | 3 | Catalog (accessions, drops, images, filters) | Done | Done | 3a backend, 3b storefront, 3c admin desk (accessions, piece editor, photos, flaws, drops). Awaiting owner visual check |
-| 4 | Inventory holds | Pending | Pending | |
+| 4 | Inventory holds | Done | Done | Place, release, expiry, staff release; behind `HOLDS_ENABLED` (off in production until checkout). Awaiting owner visual check |
 | 5 | Orders + shipping zones | Pending | Pending | |
 | 6 | Payments (mock, then Daraja) | Pending | Pending | |
 | 7 | Admin quick-list, orders board, share assets | Pending | Pending | |
@@ -28,7 +28,7 @@ Updated: 2026-10-07
 Created with real content in their module, not as empty placeholders (an empty `page.tsx` breaks
 `next build`):
 
-- Storefront: `/hold`, `/orders/track`, `/orders/[orderNo]`, `/field-notes`, `/about`,
+- Storefront: `/orders/track`, `/orders/[orderNo]`, `/field-notes`, `/about`,
   `/policies/[slug]`, `/style-guide`.
 - Admin desk: `/admin/list`, `/admin/orders`, `/admin/orders/[id]/slip`.
 
@@ -82,3 +82,16 @@ Created with real content in their module, not as empty placeholders (an empty `
   uploaded with one kind; set each photo's kind afterwards.
 - The new-piece and drop drawers, confirm dialogs and photo uploads need JavaScript. The piece
   editor's section forms work without it.
+- Next's data cache keeps API responses across builds and deploys. A field added to a cached
+  public read must be optional with a default in its zod schema, or pages fail on cache entries
+  written before the field existed (seen with `hold` on the piece record during module 4).
+- Holds are anonymous: a visitor is a random cookie, so someone rotating cookies (or calling the
+  API with fresh `X-Visitor-Token` values) can hold many pieces, bounded only by the per-address
+  rate of 30 holds a minute. That is why `HOLDS_ENABLED` stays off in production until module 5,
+  where a hold should be tied to the buyer's phone number before it can last 15 minutes.
+- A hold that lapses is shown as held on the cached storefront for up to a minute after the expiry
+  task ends it (the API cannot expire Next's cache). Placing a hold on such a piece still works:
+  the lapsed hold is ended on the spot.
+- The hold clock counts to the expiry the API set, corrected for the gap between the phone's and
+  the server's clocks at page load. If the phone's clock changes while the page is open, the clock
+  drifts with it; the server stays the authority, and the page refreshes until it agrees.
