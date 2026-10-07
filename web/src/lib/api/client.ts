@@ -9,6 +9,7 @@ export type Query = Record<string, QueryValue | readonly QueryValue[]>;
 
 export type RequestOptions<S extends z.ZodTypeAny> = {
   method?: Method;
+  /** JSON-encoded, except `FormData`, which goes as multipart with fetch's own boundary. */
   body?: unknown;
   token?: string;
   schema: S;
@@ -96,7 +97,8 @@ export async function apiRequest<S extends z.ZodTypeAny>(
   }: RequestOptions<S>,
 ): Promise<z.infer<S>> {
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const multipart = body instanceof FormData;
+  if (body !== undefined && !multipart) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
   if (clientIp) headers["X-Forwarded-For"] = clientIp;
   const internal = internalToken(clientIp);
@@ -109,7 +111,7 @@ export async function apiRequest<S extends z.ZodTypeAny>(
     response = await fetch(buildUrl(path, query), {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : multipart ? body : JSON.stringify(body),
       signal,
       ...(cached ? { next: { revalidate, tags } } : { cache: "no-store" as const }),
     });

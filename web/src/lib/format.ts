@@ -51,3 +51,32 @@ export function countdown(target: Date, now: Date): Countdown {
 export function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
+
+/*
+  The desk always enters times as Nairobi wall-clock time, whatever timezone the staff member's
+  browser is in. Nairobi is UTC+3 all year (no daylight saving), so the offset is fixed.
+*/
+const NAIROBI_OFFSET = "+03:00";
+const NAIROBI_OFFSET_MS = 3 * 60 * 60 * 1000;
+const LOCAL_INPUT = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+/** ISO timestamp -> `2026-10-08T18:00` for a datetime-local input, in Nairobi time. */
+export function toNairobiInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Date(date.getTime() + NAIROBI_OFFSET_MS).toISOString().slice(0, 16);
+}
+
+/** `2026-10-08T18:00` read as Nairobi time -> ISO timestamp, or null when it is not a real time. */
+export function fromNairobiInput(value: string): string | null {
+  const match = LOCAL_INPUT.exec(value.trim());
+  if (!match) return null;
+  const iso = `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:00${NAIROBI_OFFSET}`;
+  const date = new Date(iso);
+  // Reject rollovers such as 31 February, which Date would quietly move into March.
+  if (Number.isNaN(date.getTime()) || toNairobiInput(date.toISOString()) !== value.trim()) {
+    return null;
+  }
+  return iso;
+}

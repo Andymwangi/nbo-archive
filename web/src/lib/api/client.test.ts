@@ -122,3 +122,38 @@ describe("apiRequest", () => {
     });
   });
 });
+
+describe("apiRequest bodies", () => {
+  it("sends FormData as multipart and lets fetch set the boundary", async () => {
+    const fetchMock = stubFetch();
+    const form = new FormData();
+    form.set("kind", "front");
+    await apiRequest("/admin/accessions/1/images/", {
+      schema: ok,
+      method: "POST",
+      token: "jwt",
+      body: form,
+    });
+    const { init, headers } = sent(fetchMock);
+    expect(init.body).toBe(form);
+    expect(headers["Content-Type"]).toBeUndefined();
+  });
+
+  it("JSON-encodes plain objects", async () => {
+    const fetchMock = stubFetch();
+    await apiRequest("/admin/drops/", { schema: ok, method: "POST", token: "jwt", body: { a: 1 } });
+    const { init, headers } = sent(fetchMock);
+    expect(init.body).toBe('{"a":1}');
+    expect(headers["Content-Type"]).toBe("application/json");
+  });
+
+  it("treats 204 No Content as an empty object", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 204 })),
+    );
+    await expect(
+      apiRequest("/admin/drops/1/", { schema: z.object({}), method: "DELETE", token: "jwt" }),
+    ).resolves.toEqual({});
+  });
+});

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { countdown, formatDate, formatKes, pad2 } from "@/lib/format";
+import {
+  countdown,
+  formatDate,
+  formatKes,
+  fromNairobiInput,
+  pad2,
+  toNairobiInput,
+} from "@/lib/format";
 
 describe("formatKes", () => {
   it("groups thousands and keeps whole shillings", () => {
@@ -42,5 +49,29 @@ describe("countdown", () => {
   it("pads clock digits", () => {
     expect(pad2(4)).toBe("04");
     expect(pad2(12)).toBe("12");
+  });
+});
+
+describe("Nairobi datetime inputs", () => {
+  it("round-trips through the input format", () => {
+    expect(fromNairobiInput("2026-10-08T18:00")).toBe("2026-10-08T18:00:00+03:00");
+    expect(toNairobiInput("2026-10-08T15:00:00Z")).toBe("2026-10-08T18:00");
+    expect(toNairobiInput(fromNairobiInput("2026-12-31T23:30"))).toBe("2026-12-31T23:30");
+  });
+
+  it("crosses midnight and month ends in Nairobi, not UTC", () => {
+    expect(toNairobiInput("2026-10-31T22:30:00Z")).toBe("2026-11-01T01:30");
+  });
+
+  it.each(["", "2026-02-31T10:00", "2026-10-08 18:00", "2026-13-01T00:00", "2026-10-08T24:00"])(
+    "rejects %j",
+    (raw) => {
+      expect(fromNairobiInput(raw)).toBeNull();
+    },
+  );
+
+  it("leaves empty and malformed timestamps blank", () => {
+    expect(toNairobiInput(null)).toBe("");
+    expect(toNairobiInput("not a date")).toBe("");
   });
 });
