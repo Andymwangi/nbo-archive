@@ -155,3 +155,29 @@ the record with `unsubscribed_at` set, so consent history stays provable.
 
 Both public endpoints are rate limited per visitor address (`alerts`, 10 an hour). Nothing sends
 messages yet; sending drop alerts arrives with the operations module.
+
+## Customers
+
+Optional customer accounts with no passwords: every sign-in is a six-digit code sent by email
+(SMS is added later behind the same flow once the business can register a sender ID). Checkout
+stays open to guests.
+
+| Method | Path | Who | Purpose |
+|---|---|---|---|
+| POST | `/customers/sign-in/` | public | Email a code (`email`). Always 202; the first successful sign-in creates the account |
+| POST | `/customers/sign-in/verify/` | public | Exchange `email` + `code` for a session `token` and the customer |
+| GET/PATCH | `/customers/me/` | customer | Read, or update `name` and `phone` (Kenyan mobile, stored as E.164) |
+| POST | `/customers/sign-out/` | customer | End the session. Always 204 |
+
+Customer calls carry the session in `X-Customer-Session`; the web server keeps it in an httpOnly
+cookie and never exposes it to page scripts. Codes last `CUSTOMER_CODE_TTL_MINUTES` (10), allow 5
+wrong guesses, are stored only as an HMAC keyed with the server secret, and requesting a new code
+retires the previous one. An address gets at most 3 codes per 15 minutes; requests and checks are
+also rate limited per visitor address (`customer_code` 10 an hour, `customer_verify` 30 an hour).
+Sessions last `CUSTOMER_SESSION_DAYS` (30) and are stored hashed. Errors: `invalid_code` (401),
+`not_signed_in` (401).
+
+Email delivery uses Django's SMTP settings. For testing with Gmail: `EMAIL_HOST=smtp.gmail.com`,
+`EMAIL_PORT=587`, `EMAIL_HOST_USER` your Gmail address, `EMAIL_HOST_PASSWORD` a Google app
+password (requires 2-step verification), and `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`.
+Codes are sent by the Celery worker.
