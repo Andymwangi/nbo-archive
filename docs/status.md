@@ -102,3 +102,8 @@ Created with real content in their module, not as empty placeholders (an empty `
   and stay hidden while unset. Only Instagram (from the brief) is set in local development.
 - The home page fetches one newest piece per stocked category for the category plates (up to five
   cached API calls), plus the rail, the pulse and the facets.
+- Customer sign-in sends codes by email only. SMS needs a registered business to get a sender ID
+  approved (Safaricom requires a business registration or incorporation certificate and an
+  authorisation letter through a licensed provider); until then email codes are the only channel.
+- Code emails go out through the Celery worker; a worker started before a new task was added must
+  be restarted to pick it up.

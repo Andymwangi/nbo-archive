@@ -129,6 +129,25 @@ cd web && npm install && npm run dev   # web reads web/.env.local (NEXT_PUBLIC_A
 
 Swagger: http://localhost:8010/api/docs/ -- Web: http://localhost:3010
 
+### Sending real email (Gmail for testing)
+
+Staff sign-in links and customer sign-in codes are sent by the Celery worker. Locally they print
+in the worker's terminal (`EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend`). To send
+real email through Gmail, turn on 2-step verification on the Google account, create an app
+password (Google Account > Security > App passwords), and set in `.env`:
+
+```
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your.address@gmail.com
+EMAIL_HOST_PASSWORD=the-16-character-app-password
+DEFAULT_FROM_EMAIL=nboarchive <your.address@gmail.com>
+```
+
+Restart the API and the worker after changing `.env`. On Windows the worker and the scheduler run
+as two processes: `celery -A config worker --pool=solo -l info` and `celery -A config beat -l info`.
+
 ### Deployment requirements
 
 - The web app must sit behind one reverse proxy that appends the real client address to
