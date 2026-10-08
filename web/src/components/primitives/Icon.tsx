@@ -21,7 +21,9 @@ import hamburgerMenu from "@iconify-icons/solar/hamburger-menu-linear";
 import home from "@iconify-icons/solar/home-2-linear";
 import magnifer from "@iconify-icons/solar/magnifer-linear";
 import moon from "@iconify-icons/solar/moon-linear";
+import pause from "@iconify-icons/solar/pause-linear";
 import pen from "@iconify-icons/solar/pen-linear";
+import play from "@iconify-icons/solar/play-linear";
 import refresh from "@iconify-icons/solar/refresh-linear";
 import ruler from "@iconify-icons/solar/ruler-linear";
 import shieldCheck from "@iconify-icons/solar/shield-check-linear";
@@ -52,6 +54,8 @@ const icons = {
   close: closeSquare,
   delivery,
   edit: pen,
+  pause,
+  play,
   eye,
   filter: tuning,
   grid: widget,

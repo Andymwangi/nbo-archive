@@ -146,6 +146,7 @@
   --dur-base: 220ms;
   --dur-drawer: 340ms;
   --dur-stamp: 420ms;
+  --dur-hero: 760ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -154,6 +155,7 @@
     --dur-base: 0ms;
     --dur-drawer: 0ms;
     --dur-stamp: 0ms;
+    --dur-hero: 0ms;
   }
 }
 

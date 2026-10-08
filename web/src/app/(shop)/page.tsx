@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { ArrivalRail } from "@/components/archive/ArrivalRail";
 import { type CategoryPlate, CategoryPlates } from "@/components/archive/CategoryPlates";
 import { DropBand } from "@/components/archive/DropBand";
-import { HomeHero } from "@/components/archive/HomeHero";
+import { HeroCarousel } from "@/components/archive/HeroCarousel";
 import { PromiseStrip } from "@/components/archive/PromiseStrip";
 import { Icon } from "@/components/primitives/Icon";
 import { copy } from "@/content/copy";
@@ -12,7 +12,7 @@ import { categories, getFacets, listPieces, parseArchiveFilters } from "@/lib/ap
 import { getPulse } from "@/lib/api/drops";
 
 /*
-  The front page follows the order shoppers already know: a photographic hero with one button,
+  The front page follows the order shoppers already know: a slideshow hero with one button,
   the shop's promises, what is coming next, the newest pieces as a carousel, then a way in by
   category. The archive's character lives in the details: archive-number stickers on every
   photo, measured sizes, the drop clock.
@@ -68,8 +68,8 @@ export default async function LatestPage() {
   return (
     <div className="flex flex-col gap-12 md:gap-20">
       <div className="flex flex-col gap-0">
-        {latest ? (
-          <HomeHero pieces={recent.results} />
+        {recent.results.some((piece) => piece.cover) ? (
+          <HeroCarousel pieces={recent.results} />
         ) : (
           <h1 className="sr-only">{copy.home.heroTitle}</h1>
         )}

@@ -82,3 +82,33 @@
     animation-name: drawer-out-right;
   }
 }
+
+/*
+  Hero carousel: the incoming photograph is revealed by a wipe, like a print pulled from under
+  the one before it. Direction follows the move (forward wipes in from the right).
+*/
+@keyframes hero-wipe-forward {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes hero-wipe-back {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.hero-slide-enter[data-direction="forward"] {
+  animation: hero-wipe-forward var(--dur-hero) var(--ease-drawer) both;
+}
+
+.hero-slide-enter[data-direction="back"] {
+  animation: hero-wipe-back var(--dur-hero) var(--ease-drawer) both;
+}
