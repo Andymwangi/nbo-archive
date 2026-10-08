@@ -47,3 +47,16 @@ export const legalLinks: NavLink[] = [
   { href: "/policies/privacy", label: l.privacy },
   { href: "/policies/terms", label: l.terms },
 ];
+
+/** The header's main menu: new in, shop all, every category, then accessions. */
+export const mainNavLinks: (NavLink & { category?: string; match: (path: string) => boolean })[] = [
+  { href: "/", label: copy.nav.newIn, match: (path) => path === "/" },
+  { href: "/archive", label: copy.nav.shopAll, match: (path) => path.startsWith("/archive") },
+  ...categories.map((category) => ({
+    href: `/archive?category=${category}`,
+    label: copy.labels.categoryPlural[category],
+    category,
+    match: (path: string) => path.startsWith("/archive"),
+  })),
+  { href: "/drops", label: copy.nav.drops, match: (path) => path.startsWith("/drops") },
+];

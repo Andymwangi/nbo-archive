@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { ArchiveJump } from "@/components/layout/ArchiveJump";
 import { Drawer } from "@/components/primitives/Drawer";
 import { Icon, type IconName } from "@/components/primitives/Icon";
 import { copy } from "@/content/copy";
@@ -18,8 +17,8 @@ import {
 } from "@/content/navigation";
 
 /*
-  On a phone the main controls sit under the thumb: Shop, Find (by archive number), Holds (or
-  Drops while holds are closed) and Menu. It is hidden from md up, where the header carries them.
+  Below lg the main controls sit under the thumb, the way shop apps do: New in, Shop all, Holds
+  (or Accessions while holds are closed) and Menu. Search stays in the header on every size.
 */
 type MobileTabBarProps = {
   holdCount: number;
@@ -31,7 +30,7 @@ const tabClass =
 
 export function MobileTabBar({ holdCount, holdsOpen }: MobileTabBarProps) {
   const pathname = usePathname() ?? "/";
-  const [panel, setPanel] = useState<"find" | "menu" | null>(null);
+  const [panel, setPanel] = useState<"menu" | null>(null);
   const close = () => setPanel(null);
 
   const tab = (href: string, label: string, icon: IconName, active: boolean, badge?: number) => (
@@ -56,26 +55,19 @@ export function MobileTabBar({ holdCount, holdsOpen }: MobileTabBarProps) {
     <>
       <nav
         aria-label={copy.nav.label}
-        className="fixed inset-x-0 bottom-0 z-30 border-t-[1.5px] border-ink bg-paper pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t-[1.5px] border-ink bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         <div className="flex">
+          {tab("/", copy.nav.newIn, "home", pathname === "/")}
           {tab(
             "/archive",
-            copy.shell.tabs.shop,
+            copy.nav.shopAll,
             "grid",
             pathname.startsWith("/archive") || pathname.startsWith("/item"),
           )}
-          <button
-            type="button"
-            onClick={() => setPanel("find")}
-            className={`${tabClass} text-ink-muted`}
-          >
-            <Icon name="search" size={22} />
-            {copy.shell.tabs.find}
-          </button>
           {holdsOpen
-            ? tab("/hold", copy.shell.tabs.holds, "clock", pathname.startsWith("/hold"), holdCount)
-            : tab("/drops", copy.shell.tabs.drops, "calendar", pathname.startsWith("/drops"))}
+            ? tab("/hold", copy.shell.tabs.holds, "bag", pathname.startsWith("/hold"), holdCount)
+            : tab("/drops", copy.nav.drops, "calendar", pathname.startsWith("/drops"))}
           <button
             type="button"
             onClick={() => setPanel("menu")}
@@ -86,15 +78,6 @@ export function MobileTabBar({ holdCount, holdsOpen }: MobileTabBarProps) {
           </button>
         </div>
       </nav>
-
-      <Drawer
-        open={panel === "find"}
-        onOpenChange={(open) => setPanel(open ? "find" : null)}
-        title={copy.shell.findTitle}
-        description={copy.shell.findLede}
-      >
-        <ArchiveJump />
-      </Drawer>
 
       <Drawer
         open={panel === "menu"}

@@ -108,6 +108,13 @@ export const copy = {
 
   nav: {
     label: "Index",
+    newIn: "New in",
+    shopAll: "Shop all",
+    search: "Search by archive number",
+    holdsBag: (n: number) =>
+      n === 1 ? "Your holds, 1 piece" : n ? `Your holds, ${n} pieces` : "Your holds",
+    whatsapp: "WhatsApp",
+    whatsappLabel: "Chat with us on WhatsApp",
     latest: "Latest",
     archive: "Archive",
     drops: "Accessions",
@@ -130,7 +137,7 @@ export const copy = {
     menuTitle: "The archive",
     findTitle: "Find a piece by number",
     findLede: "Type the number from the post or the label: 142, 0142 or NBO-0142.",
-    tabs: { shop: "Shop", find: "Find", holds: "Holds", drops: "Drops", menu: "Menu" },
+    tabs: { holds: "Holds", menu: "Menu" },
   },
 
   footer: {
@@ -259,7 +266,17 @@ export const copy = {
 
   home: {
     eyebrow: "Latest accession",
-    railTitle: "Newest on the rail",
+    heroTitle: "Thrifted, numbered, measured.",
+    heroCategories: "Polos / Jackets / Sweaters / Hoodies / Tees",
+    heroCta: "Shop the archive",
+    promises: [
+      "Inspected and cleaned",
+      "Measured flat",
+      "Every flaw photographed",
+      "Delivery within Kenya",
+    ],
+    shopCategory: (name: string) => `Shop ${name.toLowerCase()}`,
+    railTitle: "New in",
     railLede: (n: number) =>
       n === 1 ? "1 piece on the rail right now." : `${n} pieces on the rail right now.`,
     railPrevious: "Earlier pieces",
@@ -269,6 +286,7 @@ export const copy = {
     categoriesTitle: "Shop by category",
     categoryCount: (n: number) => (n === 1 ? "1 piece" : `${n} pieces`),
     browse: "The whole archive",
+    viewAll: "View all",
     emptyTitle: "Nothing filed yet.",
     emptyBody: "The first pieces are being measured and photographed. Check back soon.",
   },

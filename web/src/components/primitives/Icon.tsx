@@ -6,18 +6,25 @@ import altArrowRight from "@iconify-icons/solar/alt-arrow-right-linear";
 import altArrowUp from "@iconify-icons/solar/alt-arrow-up-linear";
 import arrowLeft from "@iconify-icons/solar/arrow-left-linear";
 import arrowRight from "@iconify-icons/solar/arrow-right-linear";
+import bag from "@iconify-icons/solar/bag-4-linear";
 import calendar from "@iconify-icons/solar/calendar-linear";
+import camera from "@iconify-icons/solar/camera-linear";
+import chat from "@iconify-icons/solar/chat-round-dots-linear";
 import checkCircle from "@iconify-icons/solar/check-circle-linear";
 import clockCircle from "@iconify-icons/solar/clock-circle-linear";
 import closeSquare from "@iconify-icons/solar/close-square-linear";
+import delivery from "@iconify-icons/solar/delivery-linear";
 import eye from "@iconify-icons/solar/eye-linear";
 import letter from "@iconify-icons/solar/letter-linear";
 import logout from "@iconify-icons/solar/logout-2-linear";
 import hamburgerMenu from "@iconify-icons/solar/hamburger-menu-linear";
+import home from "@iconify-icons/solar/home-2-linear";
 import magnifer from "@iconify-icons/solar/magnifer-linear";
 import moon from "@iconify-icons/solar/moon-linear";
 import pen from "@iconify-icons/solar/pen-linear";
 import refresh from "@iconify-icons/solar/refresh-linear";
+import ruler from "@iconify-icons/solar/ruler-linear";
+import shieldCheck from "@iconify-icons/solar/shield-check-linear";
 import sun from "@iconify-icons/solar/sun-2-linear";
 import trash from "@iconify-icons/solar/trash-bin-trash-linear";
 import tuning from "@iconify-icons/solar/tuning-2-linear";
@@ -32,7 +39,10 @@ import widget from "@iconify-icons/solar/widget-4-linear";
 const icons = {
   "arrow-left": arrowLeft,
   "arrow-right": arrowRight,
+  bag,
   calendar,
+  camera,
+  chat,
   check: checkCircle,
   "chevron-down": altArrowDown,
   "chevron-left": altArrowLeft,
@@ -40,17 +50,21 @@ const icons = {
   "chevron-up": altArrowUp,
   clock: clockCircle,
   close: closeSquare,
+  delivery,
   edit: pen,
   eye,
   filter: tuning,
   grid: widget,
+  home,
   letter,
   logout,
   menu: hamburgerMenu,
   moon,
   plus: addSquare,
   refresh,
+  ruler,
   search: magnifer,
+  "shield-check": shieldCheck,
   sun,
   trash,
   upload,

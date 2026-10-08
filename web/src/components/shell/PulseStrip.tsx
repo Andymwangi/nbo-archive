@@ -6,7 +6,8 @@ import { formatDateTime } from "@/lib/format";
 
 /*
   The live strip above the header: what is coming and how busy the rail is, from real counts.
-  It holds still (no marquee); on a phone it keeps the most useful line and drops the rest.
+  One centred line, like a shop's announcement bar; it holds still (no marquee), and on a phone
+  it keeps the most useful message and drops the counts.
 */
 export function PulseStrip({ pulse }: { pulse: Pulse | null }) {
   const drop = pulse?.next_drop;
@@ -14,7 +15,7 @@ export function PulseStrip({ pulse }: { pulse: Pulse | null }) {
     <div className="surface-ink">
       <p
         aria-label={copy.shell.strip.label}
-        className="mx-auto flex max-w-[90rem] items-center justify-between gap-6 px-4 py-2 meta md:px-8"
+        className="mx-auto flex max-w-[90rem] items-center justify-center gap-x-6 px-4 py-2.5 text-center meta md:px-8"
       >
         <span className="flex min-w-0 items-center gap-2 truncate">
           <span aria-hidden className="size-1.5 shrink-0 rounded-hole bg-signal" />
