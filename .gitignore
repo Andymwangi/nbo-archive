@@ -30,3 +30,6 @@ npm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# Third-party screenshots used only as design reference
+docs/inspiration/

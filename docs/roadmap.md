@@ -54,6 +54,14 @@ newest-arrivals rail (or the next drop's countdown when one is scheduled) with c
 an availability filter with counts, and a delivery note beside the hold button. Lufimen.com was
 reviewed for ideas; only its commerce mechanics were adopted.
 
+Follow-up 2026-10-08, from the owner's Lufimen screenshots: the header now uses the familiar
+layout (wordmark left, full menu with every category centred, search / holds bag / theme on the
+right), the home page opens on a two-photo hero of the newest pieces with one headline and one
+"Shop the archive" button, then a promise strip, the drop band when one is scheduled, a "New in"
+carousel with edge arrows and a progress bar, and category tiles with "Shop polos" bars. A
+floating WhatsApp button appears once the number is configured. The archive's look (paper, ink,
+signal, square corners, mono labels, archive-number stickers) is kept throughout.
+
 ### Module 5: Orders and delivery
 
 Guest checkout from `/hold`: phone (+254 formatting), name, delivery zone and address, order
