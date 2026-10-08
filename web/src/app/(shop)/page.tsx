@@ -3,17 +3,19 @@ import { connection } from "next/server";
 
 import { ArrivalRail } from "@/components/archive/ArrivalRail";
 import { type CategoryPlate, CategoryPlates } from "@/components/archive/CategoryPlates";
-import { DropHero } from "@/components/archive/DropHero";
+import { DropBand } from "@/components/archive/DropBand";
+import { HomeHero } from "@/components/archive/HomeHero";
+import { PromiseStrip } from "@/components/archive/PromiseStrip";
 import { Icon } from "@/components/primitives/Icon";
 import { copy } from "@/content/copy";
 import { categories, getFacets, listPieces, parseArchiveFilters } from "@/lib/api/catalog";
 import { getPulse } from "@/lib/api/drops";
 
 /*
-  Signature moment: the front page is the rail itself. The newest piece's number is set huge and
-  cropped by the edge of the page, as if stencilled on a crate half out of frame, with the newest
-  pieces on a rail beneath it. When an accession is scheduled, its countdown sheet takes the top
-  of the page and the rail follows. No banner, no slogan.
+  The front page follows the order shoppers already know: a photographic hero with one button,
+  the shop's promises, what is coming next, the newest pieces as a carousel, then a way in by
+  category. The archive's character lives in the details: archive-number stickers on every
+  photo, measured sizes, the drop clock.
 */
 
 const RAIL_LENGTH = 12;
@@ -40,63 +42,53 @@ export default async function LatestPage() {
     );
   }
 
-  // Each plate shows its category's newest piece. The rail already holds the newest pieces, so
+  // Each category tile shows its newest piece. The carousel already holds the newest pieces, so
   // only categories missing from it cost an extra (cached) request.
   const counts = new Map(facets.category.map((row) => [row.value, row.count]));
   const stocked = categories.filter((category) => (counts.get(category) ?? 0) > 0);
-  const fromRail = new Map(
+  const covers = new Map(
     stocked.map((category) => [
       category,
       recent.results.find((piece) => piece.category === category && piece.cover)?.cover ?? null,
     ]),
   );
-  const missing = stocked.filter((category) => !fromRail.get(category));
+  const missing = stocked.filter((category) => !covers.get(category));
   const fetched = await Promise.all(
     missing.map((category) => listPieces({ ...parseArchiveFilters({}), category: [category] }, 1)),
   );
   missing.forEach((category, index) => {
-    fromRail.set(category, fetched[index]?.results[0]?.cover ?? null);
+    covers.set(category, fetched[index]?.results[0]?.cover ?? null);
   });
   const plates: CategoryPlate[] = stocked.map((category) => ({
     category,
     count: counts.get(category) ?? 0,
-    cover: fromRail.get(category) ?? null,
+    cover: covers.get(category) ?? null,
   }));
 
-  const RailHeading = drop ? "h2" : "h1";
-
   return (
-    <div className="flex flex-col gap-16 md:gap-24">
-      {drop ? <DropHero drop={drop} /> : null}
+    <div className="flex flex-col gap-12 md:gap-20">
+      <div className="flex flex-col gap-0">
+        {latest ? (
+          <HomeHero pieces={recent.results} />
+        ) : (
+          <h1 className="sr-only">{copy.home.heroTitle}</h1>
+        )}
+        <PromiseStrip />
+      </div>
+
+      {drop ? <DropBand drop={drop} /> : null}
 
       {latest ? (
-        <section aria-labelledby="rail-title" className="flex flex-col gap-6">
-          {!drop && latest ? (
-            <Link
-              href={`/item/${latest.archive_no}`}
-              className="-mb-4 block overflow-hidden no-underline"
-              aria-label={`${copy.home.eyebrow}: ${latest.archive_no} ${latest.title}`}
-            >
-              <span className="flex items-baseline gap-3 meta text-ink-muted">
-                {copy.home.eyebrow} / {latest.archive_no}
-              </span>
-              <span
-                aria-hidden
-                className="-ml-[0.04em] block h-[0.66em] font-display text-[clamp(6rem,24vw,22rem)] leading-[0.82] tracking-[-0.06em]"
-              >
-                {latest.archive_no.replace(/^NBO-/, "")}
-              </span>
-            </Link>
-          ) : null}
-          <div className="flex flex-wrap items-end justify-between gap-4 border-t-[1.5px] border-ink pt-4">
+        <section aria-labelledby="new-in" className="flex flex-col gap-6">
+          <div className="flex items-end justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <RailHeading id="rail-title" className="font-display text-title">
+              <h2 id="new-in" className="font-display text-display">
                 {copy.home.railTitle}
-              </RailHeading>
+              </h2>
               <p className="meta text-ink-muted">{copy.home.railLede(pulse.on_rail)}</p>
             </div>
             <Link href="/archive" className="inline-flex min-h-11 items-center gap-2 meta">
-              {copy.home.browse}
+              {copy.home.viewAll}
               <Icon name="arrow-right" size={16} />
             </Link>
           </div>

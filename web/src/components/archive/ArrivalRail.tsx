@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ArchiveNumber } from "@/components/archive/ArchiveNumber";
 import { Icon } from "@/components/primitives/Icon";
@@ -12,12 +12,31 @@ import type { PieceCard } from "@/lib/api/catalog";
 import { formatKes } from "@/lib/format";
 
 /*
-  The newest pieces on a rail you can swipe: every card the same 4:5 print in the same border,
-  snapping into place one at a time. Arrow buttons step through it on wider screens; on a phone
-  the thumb does. The first card is the page's main image, so it loads first.
+  A product carousel shoppers know how to use: cards that snap into place, square arrow buttons
+  over the edges on wide screens, a thin progress bar showing how far along you are, and swipe
+  on a phone. Every card is the same 4:5 print in the same border.
 */
 export function ArrivalRail({ pieces, label }: { pieces: PieceCard[]; label: string }) {
   const rail = useRef<HTMLOListElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [visible, setVisible] = useState(1);
+
+  useEffect(() => {
+    const element = rail.current;
+    if (!element) return;
+    const measure = () => {
+      const scrollable = element.scrollWidth - element.clientWidth;
+      setProgress(scrollable > 0 ? element.scrollLeft / scrollable : 1);
+      setVisible(element.scrollWidth > 0 ? element.clientWidth / element.scrollWidth : 1);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    element.addEventListener("scroll", measure, { passive: true });
+    return () => {
+      observer.disconnect();
+      element.removeEventListener("scroll", measure);
+    };
+  }, []);
 
   function step(direction: 1 | -1) {
     const element = rail.current;
@@ -25,41 +44,58 @@ export function ArrivalRail({ pieces, label }: { pieces: PieceCard[]; label: str
     element.scrollBy({ left: direction * element.clientWidth * 0.8, behavior: "smooth" });
   }
 
+  const thumb = Math.min(1, Math.max(visible, 0.12));
+
   return (
-    <div className="relative">
-      <ol
-        ref={rail}
-        aria-label={label}
-        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 [scrollbar-width:thin] gap-4 overflow-x-auto px-4 pb-4 md:-mx-8 md:scroll-px-8 md:gap-6 md:px-8"
-      >
-        {pieces.map((piece, index) => (
-          <li
-            key={piece.archive_no}
-            className="w-[68vw] shrink-0 snap-start sm:w-[40vw] lg:w-[19rem]"
-          >
-            <RailCard piece={piece} priority={index === 0} />
-          </li>
-        ))}
-      </ol>
-      <div className="mt-2 hidden justify-end gap-2 md:flex">
-        <button
-          type="button"
-          onClick={() => step(-1)}
-          aria-label={copy.home.railPrevious}
-          className="grid size-11 place-items-center border-[1.5px] border-ink hover:bg-paper-2"
+    <div className="flex flex-col gap-4">
+      <div className="relative">
+        <ol
+          ref={rail}
+          aria-label={label}
+          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 [scrollbar-width:none] gap-4 overflow-x-auto px-4 md:-mx-8 md:scroll-px-8 md:gap-6 md:px-8 [&::-webkit-scrollbar]:hidden"
         >
-          <Icon name="arrow-left" size={20} />
-        </button>
-        <button
-          type="button"
-          onClick={() => step(1)}
-          aria-label={copy.home.railNext}
-          className="grid size-11 place-items-center border-[1.5px] border-ink hover:bg-paper-2"
-        >
-          <Icon name="arrow-right" size={20} />
-        </button>
+          {pieces.map((piece, index) => (
+            <li
+              key={piece.archive_no}
+              className="w-[68vw] shrink-0 snap-start sm:w-[40vw] lg:w-[19rem]"
+            >
+              <RailCard piece={piece} priority={index === 0} />
+            </li>
+          ))}
+        </ol>
+        <EdgeButton side="left" label={copy.home.railPrevious} onClick={() => step(-1)} />
+        <EdgeButton side="right" label={copy.home.railNext} onClick={() => step(1)} />
+      </div>
+      <div aria-hidden className="relative h-[3px] bg-ink/15">
+        <div
+          className="absolute inset-y-0 bg-ink transition-[left] duration-[var(--dur-quick)]"
+          style={{ width: `${thumb * 100}%`, left: `${progress * (1 - thumb) * 100}%` }}
+        />
       </div>
     </div>
+  );
+}
+
+function EdgeButton({
+  side,
+  label,
+  onClick,
+}: {
+  side: "left" | "right";
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={`absolute top-[calc((100%-4.5rem)/2)] hidden size-11 -translate-y-1/2 place-items-center border-[1.5px] border-ink bg-paper hover:bg-ink hover:text-paper md:grid ${
+        side === "left" ? "-left-2" : "-right-2"
+      }`}
+    >
+      <Icon name={side === "left" ? "arrow-left" : "arrow-right"} size={20} />
+    </button>
   );
 }
 

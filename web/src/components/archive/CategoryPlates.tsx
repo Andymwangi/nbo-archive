@@ -1,14 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { Icon } from "@/components/primitives/Icon";
 import { copy } from "@/content/copy";
 import type { Category, PieceCard } from "@/lib/api/catalog";
 
 export type CategoryPlate = { category: Category; count: number; cover: PieceCard["cover"] };
 
 /*
-  One plate per category that has pieces on the rail, photographed with the newest piece in it
-  and labelled with a live count, like the tabs on a set of specimen drawers.
+  One tile per category that has pieces on the rail: the newest piece's photo, the name, a live
+  count and a plain "Shop polos" bar, the way shoppers expect category tiles to work.
 */
 export function CategoryPlates({ plates }: { plates: CategoryPlate[] }) {
   if (plates.length === 0) return null;
@@ -37,12 +38,18 @@ export function CategoryPlates({ plates }: { plates: CategoryPlate[] }) {
                   />
                 ) : null}
               </span>
-              <span className="flex items-baseline justify-between gap-2 border-t-[1.5px] border-ink bg-paper px-3 py-2.5">
-                <span className="font-display text-lead group-hover:underline">
-                  {copy.labels.categoryPlural[plate.category]}
+              <span className="flex flex-col gap-3 border-t-[1.5px] border-ink bg-paper p-3">
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="font-display text-lead">
+                    {copy.labels.categoryPlural[plate.category]}
+                  </span>
+                  <span className="meta text-ink-muted tabular-nums">
+                    {copy.home.categoryCount(plate.count)}
+                  </span>
                 </span>
-                <span className="meta text-ink-muted tabular-nums">
-                  {copy.home.categoryCount(plate.count)}
+                <span className="inline-flex min-h-11 items-center justify-between gap-2 bg-ink px-3 meta text-paper transition-colors duration-[var(--dur-quick)] group-hover:bg-signal group-hover:text-signal-ink">
+                  {copy.home.shopCategory(copy.labels.categoryPlural[plate.category])}
+                  <Icon name="arrow-right" size={16} />
                 </span>
               </span>
             </Link>
