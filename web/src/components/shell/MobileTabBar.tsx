@@ -23,12 +23,13 @@ import {
 type MobileTabBarProps = {
   holdCount: number;
   holdsOpen: boolean;
+  signedIn: boolean;
 };
 
 const tabClass =
   "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 meta no-underline";
 
-export function MobileTabBar({ holdCount, holdsOpen }: MobileTabBarProps) {
+export function MobileTabBar({ holdCount, holdsOpen, signedIn }: MobileTabBarProps) {
   const pathname = usePathname() ?? "/";
   const [panel, setPanel] = useState<"menu" | null>(null);
   const close = () => setPanel(null);
@@ -89,6 +90,9 @@ export function MobileTabBar({ holdCount, holdsOpen }: MobileTabBarProps) {
             title={copy.footer.groups.shop}
             onNavigate={close}
             links={[
+              signedIn
+                ? { href: "/account", label: copy.account.yourAccount }
+                : { href: "/account/sign-in", label: copy.account.signIn },
               ...sectionLinks,
               ...(holdsOpen ? [{ href: "/hold", label: copy.footer.links.holds }] : []),
             ]}

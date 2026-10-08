@@ -6,6 +6,7 @@ import { WhatsAppButton } from "@/components/shell/WhatsAppButton";
 import { copy } from "@/content/copy";
 import { type Pulse, getPulse } from "@/lib/api/drops";
 import { isApiError } from "@/lib/api/errors";
+import { currentCustomer } from "@/lib/customer";
 import { readTheme } from "@/lib/theme-server";
 import { currentHolds, holdsEnabled } from "@/lib/visitor";
 
@@ -20,7 +21,12 @@ async function safePulse(): Promise<Pulse | null> {
 }
 
 export default async function ShopLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [holds, theme, pulse] = await Promise.all([currentHolds(), readTheme(), safePulse()]);
+  const [holds, theme, pulse, customer] = await Promise.all([
+    currentHolds(),
+    readTheme(),
+    safePulse(),
+    currentCustomer(),
+  ]);
   const holdsOpen = holdsEnabled();
 
   return (
@@ -32,13 +38,18 @@ export default async function ShopLayout({ children }: Readonly<{ children: Reac
         {copy.shell.skip}
       </a>
       <PulseStrip pulse={pulse} />
-      <SiteHeader holdCount={holds.length} holdsOpen={holdsOpen} theme={theme} />
+      <SiteHeader
+        holdCount={holds.length}
+        holdsOpen={holdsOpen}
+        signedIn={customer !== null}
+        theme={theme}
+      />
       <main id="main" className="mx-auto max-w-[90rem] px-4 pt-8 md:px-8 md:pt-12">
         {children}
       </main>
       <SiteFooter holdsOpen={holdsOpen} nextDrop={pulse?.next_drop ?? null} now={new Date()} />
       <WhatsAppButton />
-      <MobileTabBar holdCount={holds.length} holdsOpen={holdsOpen} />
+      <MobileTabBar holdCount={holds.length} holdsOpen={holdsOpen} signedIn={customer !== null} />
     </div>
   );
 }

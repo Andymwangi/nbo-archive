@@ -15,12 +15,13 @@ import type { Theme } from "@/lib/theme";
 /*
   The familiar shop header, set in the archive's type: the wordmark on the left (the NBO prefix
   in a stamped box), the whole menu in the middle on wide screens with a signal underline under
-  the open section, and the usual icons on the right: search (by archive number), the holds bag
-  with its count, and the theme switch. Below lg the menu moves to the tab bar at the bottom.
+  the open section, and the usual icons on the right: search (by archive number), the account
+  (a dot once signed in), the holds bag with its count, and the theme switch. Below lg the menu moves to the tab bar at the bottom.
 */
 type SiteHeaderProps = {
   holdCount: number;
   holdsOpen: boolean;
+  signedIn: boolean;
   theme: Theme;
 };
 
@@ -42,7 +43,7 @@ function Wordmark() {
   );
 }
 
-export function SiteHeader({ holdCount, holdsOpen, theme }: SiteHeaderProps) {
+export function SiteHeader({ holdCount, holdsOpen, signedIn, theme }: SiteHeaderProps) {
   const pathname = usePathname() ?? "/";
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category");
@@ -87,6 +88,17 @@ export function SiteHeader({ holdCount, holdsOpen, theme }: SiteHeaderProps) {
           >
             <Icon name="search" size={22} />
           </button>
+          <Link
+            href={signedIn ? "/account" : "/account/sign-in"}
+            aria-label={signedIn ? copy.account.yourAccount : copy.account.signIn}
+            aria-current={pathname.startsWith("/account") ? "page" : undefined}
+            className={iconButton}
+          >
+            <Icon name="user" size={22} />
+            {signedIn ? (
+              <span aria-hidden className="absolute top-2 right-2 size-2 rounded-hole bg-signal" />
+            ) : null}
+          </Link>
           {holdsOpen ? (
             <Link
               href="/hold"

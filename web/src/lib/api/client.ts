@@ -20,6 +20,8 @@ export type RequestOptions<S extends z.ZodTypeAny> = {
   clientIp?: string;
   /** The storefront visitor's random key, for holds. A request carrying it is never cached. */
   visitorToken?: string;
+  /** A signed-in customer's session. A request carrying it is never cached. */
+  customerSession?: string;
   /**
    * Cache the response in Next's data cache for this many seconds. Without `revalidate` or
    * `tags` every call goes to the API.
@@ -96,6 +98,7 @@ export async function apiRequest<S extends z.ZodTypeAny>(
     query,
     clientIp,
     visitorToken,
+    customerSession,
     revalidate,
     tags,
   }: RequestOptions<S>,
@@ -106,11 +109,16 @@ export async function apiRequest<S extends z.ZodTypeAny>(
   if (token) headers.Authorization = `Bearer ${token}`;
   if (clientIp) headers["X-Forwarded-For"] = clientIp;
   if (visitorToken) headers["X-Visitor-Token"] = visitorToken;
+  if (customerSession) headers["X-Customer-Session"] = customerSession;
   const internal = internalToken(method, clientIp);
   if (internal) headers["X-Internal-Token"] = internal;
 
   const cached =
-    method === "GET" && !token && !visitorToken && (revalidate !== undefined || tags !== undefined);
+    method === "GET" &&
+    !token &&
+    !visitorToken &&
+    !customerSession &&
+    (revalidate !== undefined || tags !== undefined);
 
   let response: Response;
   try {

@@ -32,6 +32,7 @@ import trash from "@iconify-icons/solar/trash-bin-trash-linear";
 import tuning from "@iconify-icons/solar/tuning-2-linear";
 import upload from "@iconify-icons/solar/upload-linear";
 import userPlus from "@iconify-icons/solar/user-plus-linear";
+import userRounded from "@iconify-icons/solar/user-rounded-linear";
 import widget from "@iconify-icons/solar/widget-4-linear";
 
 /*
@@ -73,6 +74,7 @@ const icons = {
   trash,
   upload,
   "user-plus": userPlus,
+  user: userRounded,
 } as const;
 
 export type IconName = keyof typeof icons;
