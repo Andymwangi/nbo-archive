@@ -22,7 +22,8 @@ pushed to `origin/main` except this file and `docs/research/research-notes.md`.
 ## Next: checkout (modules 5 and 6). Decisions already made by the owner
 
 1. Delivery zones are managed from the desk and seeded from the Nairobi + Kiambu corridor research
-   (section 4 of the research notes; the research must be re-run, its results never arrived).
+   (section 4 of the research notes: 11 Nairobi metro zones and 4 Kiambu zones, with flagged
+   placements for the owner to confirm).
    A zone without a fee is not offered. Never invent fees.
 2. Pickup: one Pick Up Mtaani store in Nairobi, fee KES 0, details added by the owner.
 3. Placing a hold requires a signed-in customer (email code); the 3-hold cap is per customer.
