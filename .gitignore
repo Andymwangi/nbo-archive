@@ -33,3 +33,6 @@ Thumbs.db
 
 # Third-party screenshots used only as design reference
 docs/inspiration/
+
+# Celery beat local schedule state
+api/celerybeat-schedule*
